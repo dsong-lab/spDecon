@@ -1,17 +1,13 @@
-"""SpiceMix-style count preprocessing and clustering, then raw Poisson.
+"""spDecon expression-neighborhood initialization and raw-count KL refinement.
 
-Only the data-side initialization idea is borrowed: prevalence filtering,
-log-CPM, PCA, a K-class Louvain partition, and ten nonspatial NMF rounds.
-Coordinates, the SpiceMix HMRF, annotations, and external fitted factors are
-not accepted.  All features are restored before the literal raw-count
-Poisson refinement.
+Prevalence filtering, log-CPM, PCA, fixed-K Louvain clustering, and ten NMF
+rounds provide the initial factors. All features are restored before the
+raw-count refinement. This branch uses no coordinates or annotations.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-import importlib.util
-from pathlib import Path
 import time
 
 import numpy as np
@@ -22,12 +18,10 @@ from poisson_hmrf.independent import _row_normalize, v2_exposure_balanced_input
 from rare_init_poisson.model import _full_profiles
 from raw_count_poisson import FROZEN_CONFIG as RAW_FROZEN_CONFIG
 
+from .clustering import louvain_labels
+
 
 EPS = 1e-10
-SPICEMIX_UTIL = (
-    Path(__file__).resolve().parents[2]
-    / "benchmarking_reference_free_official/external/SpiceMix/SpiceMix/util.py"
-)
 
 
 @dataclass
@@ -52,51 +46,6 @@ def _raw_config(seed: int) -> PoissonHMRFConfig:
     }
     values["random_state"] = int(seed)
     return PoissonHMRFConfig(**values)
-
-
-def _load_spicemix_util():
-    if not SPICEMIX_UTIL.exists():
-        raise FileNotFoundError(f"official SpiceMix utility not found: {SPICEMIX_UTIL}")
-    spec = importlib.util.spec_from_file_location(
-        "_spdecon_spicemix_initialization_util", SPICEMIX_UTIL
-    )
-    if spec is None or spec.loader is None:
-        raise ImportError(f"cannot load {SPICEMIX_UTIL}")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-def _louvain_labels(
-    representation: np.ndarray,
-    n_components: int,
-    *,
-    initial_neighbors: int,
-) -> tuple[np.ndarray, int]:
-    """Use the official SpiceMix Louvain search until exactly K groups exist."""
-
-    util = _load_spicemix_util()
-    n_neighbors = min(int(initial_neighbors), len(representation) - 1)
-    while n_neighbors < len(representation):
-        labels = util.clustering_louvain_nclust(
-            representation,
-            int(n_components),
-            kwargs_neighbors={"n_neighbors": n_neighbors},
-            kwargs_clustering={},
-            resolution_boundaries=(0.5, 2.0),
-            num_rs=10,
-            force_n_cluster=False,
-            verbose=False,
-        )
-        labels = np.asarray(labels, dtype=int)
-        _, labels = np.unique(labels, return_inverse=True)
-        if np.unique(labels).size == n_components:
-            return labels, n_neighbors
-        next_neighbors = min(int(np.ceil(1.5 * n_neighbors)), len(representation) - 1)
-        if next_neighbors <= n_neighbors:
-            break
-        n_neighbors = next_neighbors
-    raise RuntimeError("Louvain initialization did not produce exactly K groups")
 
 
 def _initial_factors_from_labels(
@@ -195,7 +144,7 @@ def fit_louvain_init_poisson(
         svd_solver="randomized",
         random_state=int(random_state),
     ).fit_transform(log_selected)
-    labels, used_neighbors = _louvain_labels(
+    labels, used_neighbors = louvain_labels(
         representation,
         n_components,
         initial_neighbors=n_neighbors,
@@ -229,7 +178,7 @@ def fit_louvain_init_poisson(
         {
             "method": "Louvain-initialized raw-count Poisson",
             "initialization": (
-                "count prevalence filter + log-CPM + PCA + official SpiceMix "
+                "count prevalence filter + log-CPM + PCA + spDecon "
                 "Louvain K-class search + ten nonspatial NMF rounds"
             ),
             "selected_feature_count": int(len(selected)),

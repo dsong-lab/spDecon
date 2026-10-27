@@ -80,7 +80,7 @@ def fit_consensus_raw_poisson(
     """Fit three fixed count-only basins, average them, then reconverge KL.
 
     The branches are fixed in advance: frozen all-gene raw Poisson, the
-    5,000-feature exposure-residual initializer, and the SpiceMix-style
+    5,000-feature exposure-residual initializer, and the expression-based
     nonspatial Louvain initializer.  Equal weights are used after profile-only
     Hungarian alignment.  No metric, annotation, coordinate, or other modality
     is available to the estimator.
@@ -204,7 +204,7 @@ def fit_consensus_raw_poisson(
                 "top 25% exposure-residual features, capped at 5,000 "
                 f"(used {rare_feature_count})"
             ),
-            "louvain": "fixed SpiceMix-style count-only Louvain basin",
+            "louvain": "spDecon count-only Louvain initialization",
         },
         "alignment": "Hungarian maximum profile cosine to all-gene branch",
         "branch_weights": "equal fixed one-third weights",

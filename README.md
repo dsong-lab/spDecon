@@ -7,7 +7,7 @@ spot and a gene expression profile for each component.
 
 This repository contains the basic RNA workflow: three complementary
 initializations, profile-based alignment and consensus, followed by joint
-Poisson/KL optimization with spatial total variation (TV) regularization.
+generalized KL optimization with spatial total variation (TV) regularization.
 Histology, reference-based, multi-sample, and multimodal extensions are outside
 the scope of this release.
 
@@ -15,7 +15,7 @@ the scope of this release.
 
 Start with [`code/spDecon_spatial/model.py`](code/spDecon_spatial/model.py):
 its `fit_spdecon()` function is the main optimizer that jointly updates the
-spot weights `P` and expression profiles `B` with Poisson/KL loss and spatial TV.
+spot weights `P` and expression profiles `B` with generalized KL loss and spatial TV.
 
 | File | Role |
 | --- | --- |
@@ -23,6 +23,7 @@ spot weights `P` and expression profiles `B` with Poisson/KL loss and spatial TV
 | [`code/spDecon_spatial/run_spatial.py`](code/spDecon_spatial/run_spatial.py) | Complete workflow: read inputs, build the spatial graph, calibrate TV, initialize, fit, and save outputs. |
 | [`code/spDecon_spatial/model.py`](code/spDecon_spatial/model.py) | Main joint Poisson/KL + TV optimizer (`fit_spdecon`). |
 | [`code/spDecon_core/src/consensus_raw_poisson/model.py`](code/spDecon_core/src/consensus_raw_poisson/model.py) | Fit the three initialization branches, align components, and form their consensus. |
+| [`code/spDecon_core/src/louvain_init_poisson/clustering.py`](code/spDecon_core/src/louvain_init_poisson/clustering.py) | Local fixed-K Louvain initialization using Scanpy and igraph. |
 | [`code/spDecon_core/src/poisson_hmrf/model.py`](code/spDecon_core/src/poisson_hmrf/model.py) | Shared count-only optimizer used to fit the initialization branches. |
 
 The other modules under `code/spDecon_core/src/` provide initialization and
@@ -118,6 +119,7 @@ python run_spdecon.py --help
 Run a small synthetic end-to-end check, including output validation:
 
 ```bash
+python tests/check_clustering.py  # CPU-only clustering check
 python tests/smoke.py
 ```
 
@@ -142,7 +144,18 @@ its outputs and exits with an error.
 
 ## Model
 
-For counts `Y`, spDecon uses the model
+For counts `Y`, spDecon minimizes generalized KL divergence plus spatial TV:
+
+```text
+M = diag(s) @ P @ B
+s[i] = sum_g Y[i, g]
+loss = D_KL(Y || M) / sum(Y) + lambda * TV(P)
+D_KL(Y || M) = sum_{i,g} [Y[i,g] * log(Y[i,g] / M[i,g]) - Y[i,g] + M[i,g]]
+```
+
+The logarithmic term is zero where `Y[i,g] = 0`. This KL data term is also
+equivalent, up to a parameter-independent constant and the stated
+normalization, to the negative log-likelihood of the Poisson count model:
 
 ```text
 Y[i, g] ~ Poisson(s[i] * (P @ B)[i, g])
@@ -177,9 +190,11 @@ saved diagnostics when a run reaches the iteration limit.
 The implementation is organized under `code/spDecon_core/` and
 `code/spDecon_spatial/`, as described in the core-code map above.
 
-The Louvain initializer uses a bundled utility from
-[SpiceMix](https://github.com/ma-compbio/SpiceMix). Its original MIT license
-and copyright notice are preserved in
-[`code/spDecon_core/benchmarking_reference_free_official/external/SpiceMix/LICENSE`](code/spDecon_core/benchmarking_reference_free_official/external/SpiceMix/LICENSE).
+The local Louvain initializer calls
+[Scanpy](https://scanpy.readthedocs.io/en/stable/generated/scanpy.tl.louvain.html)
+for clustering and [igraph](https://python.igraph.org/) for modularity scoring.
+It searches for the requested number of components using ten numerical
+starts per resolution and expands the expression neighborhood when needed.
+The required libraries are listed in `requirements.txt`.
 
 Maintainer: [Su Xu](https://github.com/sxu509).

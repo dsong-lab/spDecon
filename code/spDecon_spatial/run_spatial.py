@@ -22,10 +22,7 @@ CORE = ROOT.parent / 'spDecon_core'
 sys.path.insert(0, str(CORE / 'src'))
 from consensus_raw_poisson import fit_consensus_raw_poisson
 from rare_init_poisson.model import _raw_config
-import louvain_init_poisson.model as louvain
 
-# Resolve the bundled Louvain utility relative to the spDecon core.
-louvain.SPICEMIX_UTIL = CORE / 'benchmarking_reference_free_official/external/SpiceMix/SpiceMix/util.py'
 spec = importlib.util.spec_from_file_location('poisson_hmrf.spdecon_spatial', ROOT / 'model.py')
 native = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = native
