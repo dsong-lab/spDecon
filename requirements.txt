@@ -1,0 +1,13 @@
+# Install CUDA-enabled PyTorch separately; see README.md.
+numpy==1.26.4
+scipy==1.13.1
+pandas==2.3.3
+scikit-learn==1.7.2
+scanpy==1.10.3
+anndata==0.11.4
+igraph==0.11.9
+louvain==0.8.2
+h5py==3.15.1
+tqdm==4.67.1
+# The bundled Louvain dependency imports pkg_resources.
+setuptools<81
