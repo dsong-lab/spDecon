@@ -1,4 +1,4 @@
-"""Configuration for the optional spGSNMF-v3 dual-geometry experiment.
+"""Configuration for the optional spDecon-v3 dual-geometry experiment.
 
 The defaults deliberately leave the frozen v2 implementation untouched.  A
 caller must select one of the four named experimental methods explicitly.
@@ -230,7 +230,7 @@ class DualGeometryConfig:
 # Friendly aliases make the config convenient for both package users and the
 # benchmark runner without creating multiple, drifting schemas.
 ModelConfig = DualGeometryConfig
-SpGSNMFV3Config = DualGeometryConfig
+SpDeconV3Config = DualGeometryConfig
 
 
 def method_configs(**overrides: Any) -> dict[str, DualGeometryConfig]:
@@ -253,6 +253,6 @@ __all__ = [
     "ModelConfig",
     "NULL_MODELS",
     "PROFILE_SOLVERS",
-    "SpGSNMFV3Config",
+    "SpDeconV3Config",
     "method_configs",
 ]

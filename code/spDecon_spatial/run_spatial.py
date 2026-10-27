@@ -1,4 +1,4 @@
-"""Section 1 reference-free pipeline: frozen consensus -> joint KL + TV fit."""
+"""spDecon reference-free spot-level deconvolution with joint KL + spatial TV."""
 import argparse
 import hashlib
 import importlib.util
@@ -9,7 +9,7 @@ import sys
 import time
 
 for key in ('OMP_NUM_THREADS', 'OPENBLAS_NUM_THREADS', 'MKL_NUM_THREADS',
-            'NUMEXPR_NUM_THREADS', 'SMIPF_TORCH_THREADS'):
+            'NUMEXPR_NUM_THREADS', 'SPDECON_TORCH_THREADS'):
     os.environ[key] = '1'
 
 import numpy as np
@@ -18,15 +18,15 @@ import torch
 from sklearn.neighbors import NearestNeighbors
 
 ROOT = Path(__file__).resolve().parent
-CORE = ROOT.parent / 'smipf_core'
+CORE = ROOT.parent / 'spDecon_core'
 sys.path.insert(0, str(CORE / 'src'))
 from consensus_raw_poisson import fit_consensus_raw_poisson
 from rare_init_poisson.model import _raw_config
 import louvain_init_poisson.model as louvain
 
-# Resolve the archived utility at its current location without editing the core.
+# Resolve the bundled Louvain utility relative to the spDecon core.
 louvain.SPICEMIX_UTIL = CORE / 'benchmarking_reference_free_official/external/SpiceMix/SpiceMix/util.py'
-spec = importlib.util.spec_from_file_location('poisson_hmrf.section1_tv', ROOT / 'native_model.py')
+spec = importlib.util.spec_from_file_location('poisson_hmrf.spdecon_spatial', ROOT / 'model.py')
 native = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = native
 spec.loader.exec_module(native)
@@ -94,7 +94,7 @@ def refine(counts, p0, b0, i, j, weights, strength, seed):
     """Jointly refine C/P from unrefined consensus using the original solver."""
     if not np.isfinite(strength) or strength < 0:
         raise ValueError('Spatial weight must be finite and nonnegative')
-    return native.fit_poisson_hmrf(counts, np.zeros((len(counts), 2)), p0.shape[1],
+    return native.fit_spdecon(counts, np.zeros((len(counts), 2)), p0.shape[1],
         p0.copy(), b0.copy(), _raw_config(seed), tv_edges=np.column_stack([i, j]),
         tv_weights=weights, tv_lambda=strength, tv_epsilon=EPSILON)
 
@@ -116,13 +116,13 @@ def read_frame(path):
 
 
 def main():
-    ap = argparse.ArgumentParser(description=__doc__)
+    ap = argparse.ArgumentParser(prog='run_spdecon.py', description=__doc__)
     ap.add_argument('--counts', type=Path, required=True, help='Raw counts CSV: spots x genes, first column spot ID')
     ap.add_argument('--coordinates', type=Path, required=True, help='CSV with spot ID, x, y; optionally block')
     ap.add_argument('--blocks', type=Path, help='Optional CSV with spot ID and block; required for multiple sections unless coordinates contain block')
     ap.add_argument('--k', type=int, required=True)
     ap.add_argument('--counts-order', choices=['F', 'C'], default='F',
-                    help='Numeric memory layout: F for the seven CSV datasets; C for archived STARmap sparse input')
+                    help='Dense count memory layout (default: F)')
     ap.add_argument('--seeds', nargs='+', type=int, default=[1, 3, 5])
     ap.add_argument('--spatial-weight', type=float, help='Explicit lambda override; 0 is the RNA-only control. Default: seed-1 gradient calibration')
     ap.add_argument('--output', type=Path, required=True, help='New output directory')
@@ -155,10 +155,10 @@ def main():
     np.savez_compressed(args.output/'graph.npz', edge_i=i, edge_j=j, weight=w,
                         spot_ids=x.index.to_numpy(str), blocks=blocks)
     write_json(args.output/'graph_info.json', graph_info)
-    source_files = [Path(__file__), ROOT/'native_model.py']+list((CORE/'src').rglob('*.py'))
+    source_files = [Path(__file__), ROOT/'model.py']+list((CORE/'src').rglob('*.py'))
     input_files = [args.counts, args.coordinates]+([args.blocks] if args.blocks else [])
     sha = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
-    write_json(args.output/'config.json', dict(pipeline='section1_consensus_native_TV',
+    write_json(args.output/'config.json', dict(pipeline='spDecon_consensus_spatial_TV',
         K=args.k, seeds=args.seeds, counts_order=args.counts_order, alpha_s=ALPHA_S, epsilon=EPSILON,
         calibration_seed=CALIBRATION_SEED, lambda_override=args.spatial_weight,
         graph=graph_info, final_optimizer=_raw_config(1).to_dict(),

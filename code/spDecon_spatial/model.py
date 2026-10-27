@@ -1,10 +1,9 @@
-"""Exposure-aware Poisson factorization with a SpiceMix-style HMRF prior.
+"""Core spDecon optimizer: exposure-aware Poisson/KL factorization with TV.
 
-The MAP state update minimizes the observed-edge pairwise energy
-``sum_(i,j) P_i.T @ A @ P_j``.  The affinity block follows SpiceMix's node
-conditional pseudo-likelihood rather than classifying edges against non-edges.
-Negative energy entries can therefore be favorable; ``A`` is not an
-attraction matrix and must retain this energy interpretation.
+The spot-level workflow calls ``fit_spdecon`` to jointly update component
+weights P and expression profiles B, with explicit graph-TV regularization.
+The shared numerical routines also retain an optional HMRF mode; that mode
+is disabled by the spot-level workflow's ``rna_only_poisson`` configuration.
 """
 
 from __future__ import annotations
@@ -577,7 +576,7 @@ def _optimize_block(
     }
 
 
-def fit_poisson_hmrf(
+def fit_spdecon(
     counts: np.ndarray,
     coordinates: np.ndarray,
     n_components: int,
@@ -590,7 +589,7 @@ def fit_poisson_hmrf(
     tv_lambda: float = 0.0,
     tv_epsilon: float = 0.02,
 ) -> PoissonHMRFFit:
-    """Fit the opt-in RNA-only control or true observed-edge HMRF model."""
+    """Jointly fit P and B with optional graph TV or HMRF regularization."""
 
     started = time.perf_counter()
     if config is None:

@@ -1,4 +1,4 @@
-"""Optional spGSNMF-v3 dual-geometry estimator.
+"""Optional spDecon-v3 dual-geometry estimator.
 
 This module is deliberately separate from :mod:`v2`.  M0 delegates to the
 frozen v2 implementation exactly, while M1--M3 start from that same fit and
@@ -29,10 +29,10 @@ from typing import Any, Mapping, Sequence
 import numpy as np
 from scipy.optimize import minimize
 
-try:  # ``PYTHONPATH=/path/to/spGSNMF/code``
-    from v2.model import V2Fit, fit_spgsnmf_v2, row_normalize
+try:  # ``PYTHONPATH=/path/to/spDecon/code``
+    from v2.model import V2Fit, fit_spdecon_v2, row_normalize
 except ModuleNotFoundError:  # package import from a parent module
-    from ..v2.model import V2Fit, fit_spgsnmf_v2, row_normalize  # type: ignore
+    from ..v2.model import V2Fit, fit_spdecon_v2, row_normalize  # type: ignore
 
 from .config import DualGeometryConfig
 from .graph import (
@@ -1415,7 +1415,7 @@ def _identity_fit(
     )
 
 
-def fit_spgsnmf_v3_dual_geometry(
+def fit_spdecon_v3_dual_geometry(
     counts: np.ndarray,
     n_components: int,
     coordinates: np.ndarray,
@@ -1440,7 +1440,7 @@ def fit_spgsnmf_v3_dual_geometry(
 
     v2_started = time.perf_counter()
     if initial_result is None:
-        base_fit = fit_spgsnmf_v2(
+        base_fit = fit_spdecon_v2(
             counts,
             n_components,
             coords=coordinates,
@@ -2451,7 +2451,7 @@ def fit_spgsnmf_v3_dual_geometry(
 
 
 # Short alias for interactive use; the long name is kept for benchmark clarity.
-fit_spgsnmf_v3 = fit_spgsnmf_v3_dual_geometry
+fit_spdecon_v3 = fit_spdecon_v3_dual_geometry
 
 
 __all__ = [
@@ -2467,8 +2467,8 @@ __all__ = [
     "fit_affinity_block",
     "fit_profile_block_diagonal_newton",
     "fit_profile_block_logits",
-    "fit_spgsnmf_v3",
-    "fit_spgsnmf_v3_dual_geometry",
+    "fit_spdecon_v3",
+    "fit_spdecon_v3_dual_geometry",
     "huber_tv_loss_gradient",
     "laplacian_loss_gradient",
     "projected_gradient_mapping",

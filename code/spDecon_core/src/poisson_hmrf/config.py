@@ -1,4 +1,4 @@
-"""Configuration for the opt-in Poisson-HMRF spGSNMF experiment."""
+"""Configuration for the opt-in Poisson-HMRF spDecon experiment."""
 
 from __future__ import annotations
 

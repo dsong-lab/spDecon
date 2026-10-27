@@ -1,4 +1,4 @@
-"""Opt-in Poisson-HMRF experiment; current spGSNMF defaults are untouched."""
+"""Opt-in Poisson-HMRF experiment; current spDecon defaults are untouched."""
 
 from .config import PoissonHMRFConfig
 from .independent import (

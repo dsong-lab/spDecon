@@ -58,7 +58,7 @@ def _load_spicemix_util():
     if not SPICEMIX_UTIL.exists():
         raise FileNotFoundError(f"official SpiceMix utility not found: {SPICEMIX_UTIL}")
     spec = importlib.util.spec_from_file_location(
-        "_spgsnmf_spicemix_initialization_util", SPICEMIX_UTIL
+        "_spdecon_spicemix_initialization_util", SPICEMIX_UTIL
     )
     if spec is None or spec.loader is None:
         raise ImportError(f"cannot load {SPICEMIX_UTIL}")

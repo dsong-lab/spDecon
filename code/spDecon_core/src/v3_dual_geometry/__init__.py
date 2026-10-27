@@ -1,4 +1,4 @@
-"""Experimental spGSNMF-v3 dual-geometry components.
+"""Experimental spDecon-v3 dual-geometry components.
 
 Importing this package does not alter or monkey-patch the frozen v2 model.
 """
@@ -11,7 +11,7 @@ from .config import (
     ModelConfig,
     NULL_MODELS,
     PROFILE_SOLVERS,
-    SpGSNMFV3Config,
+    SpDeconV3Config,
     method_configs,
 )
 from .graph import (
@@ -35,8 +35,8 @@ from .model import (
     fit_affinity_block,
     fit_profile_block_diagonal_newton,
     fit_profile_block_logits,
-    fit_spgsnmf_v3,
-    fit_spgsnmf_v3_dual_geometry,
+    fit_spdecon_v3,
+    fit_spdecon_v3_dual_geometry,
     huber_tv_loss_gradient,
     laplacian_loss_gradient,
     projected_gradient_mapping,
@@ -55,7 +55,7 @@ __all__ = [
     "ModelConfig",
     "NULL_MODELS",
     "PROFILE_SOLVERS",
-    "SpGSNMFV3Config",
+    "SpDeconV3Config",
     "SpatialGraph",
     "affinity_loss_gradients",
     "affinity_scores",
@@ -69,8 +69,8 @@ __all__ = [
     "fit_affinity_block",
     "fit_profile_block_diagonal_newton",
     "fit_profile_block_logits",
-    "fit_spgsnmf_v3",
-    "fit_spgsnmf_v3_dual_geometry",
+    "fit_spdecon_v3",
+    "fit_spdecon_v3_dual_geometry",
     "huber_tv_loss_gradient",
     "laplacian_loss_gradient",
     "method_configs",

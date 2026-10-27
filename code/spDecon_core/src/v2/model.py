@@ -1,7 +1,7 @@
-"""Standalone spGSNMF v2: exposure-balanced all-gene KL factorization.
+"""Standalone spDecon v2: exposure-balanced all-gene KL factorization.
 
 The estimator starts from the count matrix on every call.  It does not fit,
-read, or blend a result from another spGSNMF version.  Generalized-KL NMF on
+read, or blend a result from another spDecon version.  Generalized-KL NMF on
 exposure-normalized counts gives an equal-spot conditional expression
 factorization; component scales are then fixed so that spot rows are
 proportions and profile rows are gene distributions.
@@ -206,7 +206,7 @@ def generalized_kl_per_mass(observed: np.ndarray, expected: np.ndarray) -> float
     return float(2.0 * term.sum() / max(float(observed.sum()), 1.0))
 
 
-def fit_spgsnmf_v2(
+def fit_spdecon_v2(
     counts: np.ndarray,
     n_components: int,
     exposure: np.ndarray | None = None,

@@ -11,6 +11,25 @@ Poisson/KL optimization with spatial total variation (TV) regularization.
 Histology, reference-based, multi-sample, and multimodal extensions are outside
 the scope of this release.
 
+## Core code
+
+Start with [`code/spDecon_spatial/model.py`](code/spDecon_spatial/model.py):
+its `fit_spdecon()` function is the main optimizer that jointly updates the
+spot weights `P` and expression profiles `B` with Poisson/KL loss and spatial TV.
+
+| File | Role |
+| --- | --- |
+| [`run_spdecon.py`](run_spdecon.py) | Command-line entry point. |
+| [`code/spDecon_spatial/run_spatial.py`](code/spDecon_spatial/run_spatial.py) | Complete workflow: read inputs, build the spatial graph, calibrate TV, initialize, fit, and save outputs. |
+| [`code/spDecon_spatial/model.py`](code/spDecon_spatial/model.py) | Main joint Poisson/KL + TV optimizer (`fit_spdecon`). |
+| [`code/spDecon_core/src/consensus_raw_poisson/model.py`](code/spDecon_core/src/consensus_raw_poisson/model.py) | Fit the three initialization branches, align components, and form their consensus. |
+| [`code/spDecon_core/src/poisson_hmrf/model.py`](code/spDecon_core/src/poisson_hmrf/model.py) | Shared count-only optimizer used to fit the initialization branches. |
+
+The other modules under `code/spDecon_core/src/` provide initialization and
+numerical helpers. The `poisson_hmrf` package name describes the shared solver;
+the basic workflow uses its `rna_only_poisson` mode, with spatial TV applied
+by the main optimizer above.
+
 ## Installation
 
 Use Python 3.10 and an NVIDIA GPU with CUDA-enabled PyTorch. The spatial
@@ -155,13 +174,12 @@ saved diagnostics when a run reaches the iteration limit.
 
 ## Code and acknowledgments
 
-The numerical implementation retains its existing module names under
-`code/smipf_core/` and `code/smipf_spatial/`. `run_spdecon.py` is the public
-command-line entry point.
+The implementation is organized under `code/spDecon_core/` and
+`code/spDecon_spatial/`, as described in the core-code map above.
 
 The Louvain initializer uses a bundled utility from
 [SpiceMix](https://github.com/ma-compbio/SpiceMix). Its original MIT license
 and copyright notice are preserved in
-[`code/smipf_core/benchmarking_reference_free_official/external/SpiceMix/LICENSE`](code/smipf_core/benchmarking_reference_free_official/external/SpiceMix/LICENSE).
+[`code/spDecon_core/benchmarking_reference_free_official/external/SpiceMix/LICENSE`](code/spDecon_core/benchmarking_reference_free_official/external/SpiceMix/LICENSE).
 
 Maintainer: [Su Xu](https://github.com/sxu509).
