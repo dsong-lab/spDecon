@@ -1,9 +1,5 @@
 """Run spot-level spDecon from the repository root."""
-from pathlib import Path
-import runpy
+from spDecon.cli import main
 
 if __name__ == "__main__":
-    runpy.run_path(
-        str(Path(__file__).resolve().parent / "code/spDecon_spatial/run_spatial.py"),
-        run_name="__main__",
-    )
+    main()

@@ -9,8 +9,8 @@ for key in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS", "NUMEX
 import numpy as np
 from sklearn.metrics import adjusted_rand_score
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "code/spDecon_core/src"))
-from louvain_init_poisson import louvain_labels
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from spDecon.clustering import louvain_labels
 
 
 def main():
