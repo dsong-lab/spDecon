@@ -1,0 +1,9 @@
+example,arm,status,iterations,iteration_unit,objective,recorded_fit_seconds,provenance
+cerebellum,RNA,converged,81,outer_iterations,0.06701452285051346,8.451468084007502,complete reproduction
+xenium,fixed reference,converged,1357,iterations,0.3985541840970539,9.890341054648161,complete reproduction
+g2,RNA_TV,converged,2600,iterations,1.067075749112347,61.89884327724576,complete reproduction
+g2,RNA_HE_TV,converged,1480,iterations,1.0909190474666868,35.02638462930918,complete reproduction
+rcc,rna,converged,19,outer_iterations,0.04410162195563316,2.1151331439614296,complete reproduction
+rcc,protein,converged,42,outer_iterations,0.025768952444195747,5.258390434086323,complete reproduction
+crc,joint,converged,17525,iterations,0.07976306282845883,3202.946070574224,archived full fit; not retrained for this release
+tonsil,joint,converged,19000,iterations,0.07077533710438431,545.6581202708185,complete reproduction

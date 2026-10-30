@@ -89,6 +89,27 @@ result is archived and was not retrained for this release; its 480 genes are the
 retained portion of the 500-gene candidate panel. No dataset is reduced for these
 notebook outputs.
 
+## Fitting progress and convergence
+
+Full fitting prints initialization stages, periodic `objective` (loss) and KKT
+residuals, followed by the iteration count, elapsed time and convergence status.
+The final message distinguishes **converged** from **iteration limit reached;
+not converged**. `objective` includes the active reconstruction and penalty terms;
+KKT residuals and objective changes determine stopping. A lower loss alone does
+not establish convergence or better biological accuracy.
+
+The notebooks enable `VERBOSE=True`. Set it to `False` to suppress fitting logs;
+Python fitting functions accept `verbose=False`. Core solver settings use
+`SolverConfig(verbose=False)`. `log_every` controls printing frequency without
+changing convergence checks or the optimization trajectory.
+
+In the default `RUN_FIT=False` mode, notebooks explicitly identify the loaded
+saved fit and show its recorded status, iteration count and final objective from
+[training records](reproduction/training_summary.csv). No live training is
+performed in that mode. With `RUN_FIT=True`, the messages report the new fit as it
+runs. Full histories remain available as `fit.history` (or the `history` returned
+by the strict fixed-reference solver).
+
 ## Run the reference-free core
 
 Counts CSVs contain spots in rows and features in columns, with spot IDs in the

@@ -39,7 +39,8 @@ class Objective:
         return rna + self.strength * tv, gradient + self.strength * tv_gradient, rna, tv
 
 
-def fit(counts, reference, edge_i, edge_j, weights, strength, max_steps=3000, tolerance=1e-6):
+def fit(counts, reference, edge_i, edge_j, weights, strength, max_steps=3000, tolerance=1e-6,
+        *, verbose=True, log_every=1000):
     """Same uniform start, simplex, row BB scaling and KKT; coupled Armijo.
 
     TV links rows, so line search must accept the complete update against the
@@ -47,6 +48,11 @@ def fit(counts, reference, edge_i, edge_j, weights, strength, max_steps=3000, to
     The lambda=0 run through this same code is retained as a solver-only control.
     """
     started = time.perf_counter()
+    if not isinstance(log_every, int) or log_every < 1:
+        raise ValueError('log_every must be a positive integer')
+    if verbose:
+        print(f"[spDecon:reference] optimization started | spots={len(counts)} "
+              f"K={len(reference)} max_steps={max_steps} KKT_tolerance={tolerance:g}", flush=True)
     obj = Objective(counts, reference, edge_i, edge_j, weights, strength)
     p = torch.full((len(counts), len(reference)), 1. / len(reference), dtype=torch.float64)
     value, gradient, rna, tv = obj(p)
@@ -57,6 +63,9 @@ def fit(counts, reference, edge_i, edge_j, weights, strength, max_steps=3000, to
     for iteration in range(max_steps + 1):
         mappings = (p - native._project_simplex(p - conditional)).abs().amax(1)
         kkt = float(mappings.max())
+        if verbose and iteration % log_every == 0:
+            print(f"[spDecon:reference] iteration={iteration} objective={float(value):.9g} "
+                  f"KKT={kkt:.3g} elapsed={time.perf_counter()-started:.1f}s", flush=True)
         if iteration % 20 == 0 or kkt <= tolerance or iteration == max_steps:
             history.append(dict(iteration=iteration, objective=float(value), RNA_KL=float(rna),
                                 TV=float(tv), conditional_KKT=kkt, global_KKT=native._mapping(p, gradient)))
@@ -86,10 +95,16 @@ def fit(counts, reference, edge_i, edge_j, weights, strength, max_steps=3000, to
     result = p.numpy()
     assert np.isfinite(result).all() and result.min() >= 0
     np.testing.assert_allclose(result.sum(1), 1, atol=1e-12, rtol=0)
-    return result, obj.b.numpy(), history, dict(converged=kkt <= tolerance, iterations=iteration,
+    diag = dict(converged=kkt <= tolerance, iterations=iteration,
         conditional_KKT=kkt, global_KKT=native._mapping(p, gradient), objective=float(value),
         RNA_KL=float(rna), TV=float(tv), spatial_weight=float(strength), max_steps=max_steps,
         KKT_tolerance=tolerance, backtracks=backtracks, max_objective_increase=increases,
         runtime_sec=time.perf_counter()-started, reference_fixed=True,
         initialization='uniform', solver='native projected-gradient/row BB extended with joint Armijo',
         dtype='float64', device='cpu', truth_used=False, histology_used=False)
+    if verbose:
+        status = 'converged' if diag['converged'] else 'iteration limit reached; not converged'
+        print(f"[spDecon:reference] finished | {status} | iterations={iteration} "
+              f"objective={diag['objective']:.9g} KKT={kkt:.3g} "
+              f"elapsed={diag['runtime_sec']:.1f}s", flush=True)
+    return result, obj.b.numpy(), history, diag

@@ -28,6 +28,9 @@ sentence in every later manuscript revision.
   CRC data. The full optimizer was not retrained.
 - `tutorial_metrics.csv`: metrics recalculated directly by the executed notebooks,
   including G2 region-wise PCC and Tonsil joint-component display limits.
+- `training_summary.csv`: convergence status, iteration count, final objective
+  and recorded runtime from the diagnostics of the eight saved tutorial fits.
+  These describe the corresponding saved fits, not a fresh notebook execution.
 
 The main RNA fixed-reference recipe uses 100,000 steps and KKT 1e-10. The reviewed
 manuscript draft's 3,000 / 1e-6 entry in that paragraph needs correction; those

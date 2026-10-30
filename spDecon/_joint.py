@@ -46,7 +46,7 @@ def positive_number(value, name, allow_zero=False):
     return float(value)
 
 
-def initial_factors(y, k, p0=None, b0=None, seed=1, device="auto"):
+def initial_factors(y, k, p0=None, b0=None, seed=1, device="auto", verbose=True):
     if not isinstance(k, (int, np.integer)) or isinstance(k, bool) or not 1 <= k <= min(y.shape):
         raise ValueError("K must be an integer between 1 and min(counts.shape)")
     if (p0 is None) != (b0 is None):
@@ -55,7 +55,7 @@ def initial_factors(y, k, p0=None, b0=None, seed=1, device="auto"):
         from .config import SolverConfig
         from .consensus import build_consensus
         fit = build_consensus(y, k, random_state=seed,
-                              solver_config=SolverConfig(device=device_name(device), random_state=seed))
+                              solver_config=SolverConfig(device=device_name(device), random_state=seed, verbose=verbose))
         if not all(d['converged'] for d in fit.diagnostics['branch_diagnostics'].values()):
             raise RuntimeError("An initialization branch did not converge")
         p0, b0 = fit.consensus_proportions, fit.consensus_profiles
@@ -196,8 +196,9 @@ def spatial_pair_curvature(graph, p):
 
 @torch.no_grad()
 def optimize(model, initial, *, max_iter=20000, tolerance=1e-4,
-             relative_tolerance=1e-7, check_every=25, minimum_iterations=25, progress=None):
-    for value, name in ((max_iter, "max_iter"), (check_every, "check_every"), (minimum_iterations, "minimum_iterations")):
+             relative_tolerance=1e-7, check_every=25, minimum_iterations=25, progress=None,
+             verbose=True, log_every=500):
+    for value, name in ((max_iter, "max_iter"), (check_every, "check_every"), (minimum_iterations, "minimum_iterations"), (log_every, "log_every")):
         if isinstance(value, bool) or int(value) != value or value < 1:
             raise ValueError(f"{name} must be a positive integer")
     positive_number(tolerance, "tolerance")
@@ -206,6 +207,11 @@ def optimize(model, initial, *, max_iter=20000, tolerance=1e-4,
     state = model.project(initial)
     before = previous = float(model.value(state)[0])
     history, converged, maximum_increase = [], False, 0.
+    label = type(model).__name__.removesuffix('Model').lower()
+    next_log = 0
+    if verbose:
+        print(f"[spDecon:{label}] optimization started | spots={len(state[0])} "
+              f"K={state[0].shape[1]} device={state[0].device} max_iter={max_iter}", flush=True)
     for iteration in range(max_iter + 1):
         if iteration % check_every == 0 or iteration == max_iter:
             row = diagnostics(model, state)
@@ -213,6 +219,11 @@ def optimize(model, initial, *, max_iter=20000, tolerance=1e-4,
             converged = iteration >= minimum_iterations and row['stopping_KKT'] <= tolerance and change <= relative_tolerance
             row.update(iteration=iteration, relative_change=change)
             history.append(row)
+            if verbose and iteration >= next_log:
+                print(f"[spDecon:{label}] iteration={iteration} objective={row['objective']:.9g} "
+                      f"KKT={row['stopping_KKT']:.3g} relative_change={change:.3g} "
+                      f"elapsed={time.perf_counter()-started:.1f}s", flush=True)
+                next_log = iteration + log_every
             if progress is not None:
                 progress(dict(row))
             previous = row['objective']
@@ -250,4 +261,9 @@ def optimize(model, initial, *, max_iter=20000, tolerance=1e-4,
                 runtime_sec=time.perf_counter() - started, max_objective_increase=maximum_increase,
                 optimizer='MM_SQUAREM', device=str(state[0].device), dtype='float64',
                 tolerance=tolerance, relative_tolerance=relative_tolerance, max_iter=max_iter)
+    if verbose:
+        status = 'converged' if converged else 'iteration limit reached; not converged'
+        print(f"[spDecon:{label}] finished | {status} | iterations={iteration} "
+              f"objective={diag['objective']:.9g} KKT={diag['stopping_KKT']:.3g} "
+              f"elapsed={diag['runtime_sec']:.1f}s", flush=True)
     return state, history, diag

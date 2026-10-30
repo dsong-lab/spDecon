@@ -3,6 +3,7 @@ from pathlib import Path
 import subprocess
 from urllib.request import urlretrieve
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Patch, Wedge
@@ -27,6 +28,15 @@ def dataset(name):
         subprocess.run(['tar', '-xzf', str(archive), '-C', str(ROOT)], check=True)
         archive.unlink()
     return path, np.load(path / 'data.npz', allow_pickle=False)
+
+
+def saved_fit_summary(example, arm):
+    """Show the recorded training outcome of the complete fit just loaded."""
+    records = pd.read_csv(ROOT / 'reproduction/training_summary.csv')
+    row = records.set_index(['example', 'arm']).loc[(example, arm)]
+    print(f"[saved fit] {example}/{arm} loaded | recorded status={row['status']} | "
+          f"{row['iteration_unit']}={row['iterations']} | objective={row['objective']:.9g}\n"
+          "[saved fit] This cell loaded a previous full fit; no new optimization was run.", flush=True)
 
 
 def correlation(a, b):

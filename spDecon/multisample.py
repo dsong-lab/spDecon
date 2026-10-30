@@ -160,7 +160,7 @@ def fit_multisample(counts, metadata, n_components, *, group_by='sample_id',
                     subject_column=None, edges=None, coordinates=None,
                     eta_subject=10., eta_condition=20., spatial_weight=.05,
                     initial_proportions=None, initial_profiles=None, random_state=1,
-                    device='auto', **optimizer):
+                    device='auto', verbose=True, **optimizer):
     """Fit flat group deviations or subject + within-subject group deviations.
 
     For condition nesting, use group_by=['subject_id', 'condition'] and
@@ -173,6 +173,9 @@ def fit_multisample(counts, metadata, n_components, *, group_by='sample_id',
         raise ValueError("Counts and metadata spot IDs/order must match")
     group, parent, groups, subjects, a = design_matrix(metadata, group_by, subject_column)
     device = device_name(device)
+    if verbose:
+        print(f"[spDecon:multisample] preparing fit | spots={len(y)} "
+              f"groups={len(groups)} seed={random_state}", flush=True)
     eta_subject = positive_number(eta_subject, 'eta_subject', True)
     eta_condition = positive_number(eta_condition, 'eta_condition', True) if subject_column else 0.
     if edges is None and spatial_weight:
@@ -182,10 +185,10 @@ def fit_multisample(counts, metadata, n_components, *, group_by='sample_id',
         edges = np.column_stack((i, j))
     edges = validate_edges(edges, len(y), metadata.section_id.to_numpy())
     graph = SpatialLoss(edges, None, len(y), device, spatial_weight)
-    p0, b0 = initial_factors(y, n_components, initial_proportions, initial_profiles, random_state, device)
+    p0, b0 = initial_factors(y, n_components, initial_proportions, initial_profiles, random_state, device, verbose)
     model = MultiSampleModel(y, group, parent, a, n_components, eta_subject, eta_condition, graph, device)
     tensors = [torch.as_tensor(p0, device=device), torch.as_tensor(np.repeat(b0[None], len(parent), axis=0), device=device)]
-    state, history, diag = optimize(model, tensors, **optimizer)
+    state, history, diag = optimize(model, tensors, verbose=verbose, **optimizer)
     shared, means, delta, within = [v.cpu().numpy() for v in model.decompose(state[1])]
     diag.update(mode='multisample', group_by=[group_by] if isinstance(group_by, str) else list(group_by),
                 subject_column=subject_column, eta_subject=eta_subject, eta_condition=eta_condition,

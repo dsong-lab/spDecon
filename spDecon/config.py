@@ -23,7 +23,8 @@ class SolverConfig:
     random_state: int = 0
     device: str = "cuda"
     dtype: str = "float32"
-    verbose: bool = False
+    verbose: bool = True
+    log_every: int = 10
 
     def __post_init__(self):
         self.validate()
@@ -33,6 +34,7 @@ class SolverConfig:
             "max_outer_iterations", "max_p_steps", "max_b_steps",
             "kkt_check_interval", "minimum_outer_iterations",
             "convergence_patience", "max_backtracks",
+            "log_every",
         ):
             value = getattr(self, name)
             if int(value) != value or value < 1:

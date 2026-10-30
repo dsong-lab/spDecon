@@ -83,7 +83,7 @@ def fit_histology(counts, morphology, coordinates, n_components, *, sections=Non
                   image_weight=None, spatial_weight=None,
                   image_gate=True,
                   initial_proportions=None, initial_profiles=None,
-                  random_state=1, device='auto', **optimizer):
+                  random_state=1, device='auto', verbose=True, **optimizer):
     """Fit from the unrefined RNA consensus and fixed 32-column HIPT/UNI Q.
 
     The image command produces Q from the registered H&E image. For new data,
@@ -104,7 +104,10 @@ def fit_histology(counts, morphology, coordinates, n_components, *, sections=Non
     if not np.allclose(q.reshape(len(y), 2, 16).sum(2), .5, rtol=0, atol=1e-8):
         raise ValueError('Each 16-column morphology block must sum to 0.5')
     device = device_name(device)
-    p0, b0 = initial_factors(y, n_components, initial_proportions, initial_profiles, random_state, device)
+    if verbose:
+        arm = 'RNA only' if morphology is None else 'RNA + H&E'
+        print(f"[spDecon:histology] preparing {arm} fit | seed={random_state}", flush=True)
+    p0, b0 = initial_factors(y, n_components, initial_proportions, initial_profiles, random_state, device, verbose)
     from .spatial import spatial_graph
     sections = np.repeat('0', len(y)) if sections is None else sections
     i, j, coordinate_weights, info = spatial_graph(coordinates, sections)
@@ -141,7 +144,7 @@ def fit_histology(counts, morphology, coordinates, n_components, *, sections=Non
     optimizer.setdefault('check_every', 10)
     optimizer.setdefault('minimum_iterations', 20)
     optimizer.setdefault('relative_tolerance', 1e-6)
-    state, history, diag = optimize(model, [p, b, h], **optimizer)
+    state, history, diag = optimize(model, [p, b, h], verbose=verbose, **optimizer)
     diag.update(mode='histology', image_weight=image_weight, spatial_weight=spatial_weight,
                 image_gate=bool(image_gate),
                 calibration=calibration, graph=info,

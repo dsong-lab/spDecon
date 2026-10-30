@@ -47,9 +47,9 @@ def align_to_reference_profiles(reference_profiles, proportions, profiles):
     return proportions[:, order], profiles[order], order, similarity[np.arange(len(order)), order]
 
 
-def build_consensus(counts, n_components, *, random_state=0, solver_config=None):
+def build_consensus(counts, n_components, *, random_state=0, solver_config=None, verbose=None):
     """Fit three branches and return the unrefined consensus for the TV fit."""
-    fits = fit_initializations(counts, n_components, random_state, solver_config=solver_config)
+    fits = fit_initializations(counts, n_components, random_state, solver_config=solver_config, verbose=verbose)
     reference = fits["all_features"]
     reference_p = np.asarray(reference.proportions, dtype=float)
     reference_b = np.asarray(reference.profiles, dtype=float)
@@ -66,6 +66,10 @@ def build_consensus(counts, n_components, *, random_state=0, solver_config=None)
         alignments[name], similarities[name] = order, similarity.tolist()
     p0 = _row_normalize(np.mean([aligned_p[name] for name in BRANCH_NAMES], axis=0))
     b0 = _row_normalize(np.mean([aligned_b[name] for name in BRANCH_NAMES], axis=0))
+    if reference.config['verbose']:
+        n_converged = sum(fit.diagnostics['converged'] for fit in fits.values())
+        print(f"[spDecon] consensus ready | {n_converged}/3 branches converged; "
+              "profiles aligned and averaged", flush=True)
     return ConsensusFit(
         p0, b0, aligned_p, aligned_b, alignments,
         {"branch_diagnostics": {name: fit.diagnostics for name, fit in fits.items()},

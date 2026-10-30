@@ -66,10 +66,12 @@ def calibrate(counts, p0, b0, i, j, weights):
                 reused_across_seeds=True, truth_used=False)
 
 
-def refine(counts, p0, b0, i, j, weights, strength, seed):
+def refine(counts, p0, b0, i, j, weights, strength, seed, *, verbose=True, log_every=10):
     """Jointly refine P/B from the unrefined consensus under KL + TV."""
     if not np.isfinite(strength) or strength < 0:
         raise ValueError('Spatial weight must be finite and nonnegative')
+    if verbose:
+        print(f"[spDecon] spatial refinement | spatial_weight={strength:.6g}", flush=True)
     return fit_spdecon(counts, p0.shape[1],
-        p0.copy(), b0.copy(), SolverConfig(random_state=seed), tv_edges=np.column_stack([i, j]),
+        p0.copy(), b0.copy(), SolverConfig(random_state=seed, verbose=verbose, log_every=log_every), tv_edges=np.column_stack([i, j]),
         tv_weights=weights, tv_lambda=strength, tv_epsilon=EPSILON)

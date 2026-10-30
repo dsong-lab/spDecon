@@ -7,16 +7,25 @@ import torch
 from ._joint import JointFit, device_name, validate_counts
 
 
-def fit_reference_consensus(counts, reference_profiles, *, random_state=0):
+def fit_reference_consensus(counts, reference_profiles, *, random_state=0, verbose=True):
     """Manuscript ATAC: three raw initializers, fixed-profile fits and consensus.
 
     CPU float64; original 500-outer-iteration solver; P KKT tolerance 1e-10
     and relative-objective tolerance 1e-12.
     """
     from ._atac_reference.consensus_raw_poisson import fit_consensus_raw_poisson
-    return fit_consensus_raw_poisson(counts, len(reference_profiles), random_state=random_state,
+    started = time.perf_counter()
+    if verbose:
+        print(f"[spDecon:ATAC-reference] three-branch fitting started | "
+              f"spots={len(counts)} K={len(reference_profiles)} seed={random_state}", flush=True)
+    result = fit_consensus_raw_poisson(counts, len(reference_profiles), random_state=random_state,
                                     reference_profiles=reference_profiles, reference_mode='fixed',
                                     reference_config=dict(p_kkt_tolerance=1e-10, relative_tolerance=1e-12))
+    if verbose:
+        status = 'converged' if result.diagnostics['converged'] else 'not converged'
+        print(f"[spDecon:ATAC-reference] finished | {status} | "
+              f"elapsed={time.perf_counter()-started:.1f}s", flush=True)
+    return result
 
 
 def _array(x):
@@ -87,7 +96,7 @@ def _mapping(x, gradient):
     return float((x - _project_simplex(x - gradient)).abs().max().item())
 
 
-def _p_block(q, p, b, maximum_steps, tolerance, steps=None):
+def _p_block(q, p, b, maximum_steps, tolerance, steps=None, *, progress=None, log_every=1000):
     """Rowwise projected gradient with BB proposals and Armijo safeguards.
 
     Each row minimizes -sum_g (Y_ig / s_i) log((PB)_ig). This positive
@@ -103,8 +112,11 @@ def _p_block(q, p, b, maximum_steps, tolerance, steps=None):
         steps = (0.1 / scale.clamp(min=1e-8)).clamp(min=1e-10, max=1e6)
     accepted_total = 0
     backtracks_total = 0
-    for _ in range(maximum_steps):
+    completed = 0
+    for iteration in range(maximum_steps):
         mapping = (p - _project_simplex(p - gradient)).abs().amax(dim=1)
+        if progress is not None and iteration % log_every == 0:
+            progress(iteration, p, float(mapping.max()))
         active = mapping > tolerance
         if not bool(active.any()):
             break
@@ -133,18 +145,20 @@ def _p_block(q, p, b, maximum_steps, tolerance, steps=None):
         moved = displacement.abs().amax(dim=1) > 1e-15
         accepted_total += int(moved.sum().item())
         p, objective, gradient = new_p, new_obj, new_gradient
+        completed = iteration + 1
         if not bool(moved.any()):
             break
     return p, steps, {
         "p_conditional_kkt": _mapping(p, gradient),
         "p_accepted_row_steps": accepted_total,
         "p_backtracks": backtracks_total,
+        "p_iterations": completed,
     }
 
 
 def fit_reference(counts, reference_profiles, *, gene_ids=None, reference_gene_ids=None,
                   initial_proportions=None, reference_floor=1e-12, max_steps=3000,
-                  tolerance=1e-6, device='auto'):
+                  tolerance=1e-6, device='auto', verbose=True, log_every=1000):
     """Fix the supplied reference profiles and optimize only the spot weights.
 
     Defaults use the single uniform start and rowwise BB/Armijo solver of the
@@ -156,10 +170,15 @@ def fit_reference(counts, reference_profiles, *, gene_ids=None, reference_gene_i
         raise ValueError('max_steps must be a positive integer')
     if not np.isfinite(tolerance) or tolerance <= 0:
         raise ValueError('tolerance must be finite and positive')
+    if not isinstance(log_every, int) or log_every < 1:
+        raise ValueError('log_every must be a positive integer')
     k = len(reference_profiles)
     y, r, smoothed, checked = _validate(counts, k, reference_profiles, gene_ids,
                                        reference_gene_ids, reference_floor)
     device = device_name(device)
+    if verbose:
+        print(f"[spDecon:reference] optimization started | spots={len(y)} K={k} "
+              f"device={device} max_steps={max_steps} KKT_tolerance={tolerance:g}", flush=True)
     p0 = np.full((len(y), k), 1/k) if initial_proportions is None else np.asarray(initial_proportions, float)
     if p0.shape != (len(y), k) or not np.isfinite(p0).all() or (p0 < 0).any() or (p0.sum(1) <= 0).any():
         raise ValueError('Invalid initial spot weights')
@@ -173,8 +192,12 @@ def fit_reference(counts, reference_profiles, *, gene_ids=None, reference_gene_i
             mask = yt > 0
             return float(((mean-yt).sum()+(yt[mask]*torch.log(yt[mask]/mean[mask])).sum())/yt.sum())
         history = [dict(iteration=0, objective=loss(p))]
-        p, _, info = _p_block(q, p, rt, max_steps, tolerance)
-        history.append(dict(iteration=1, objective=loss(p), **info))
+        def report(iteration, weights, kkt):
+            print(f"[spDecon:reference] iteration={iteration} objective={loss(weights):.9g} "
+                  f"KKT={kkt:.3g} elapsed={time.perf_counter()-started:.1f}s", flush=True)
+        p, _, info = _p_block(q, p, rt, max_steps, tolerance,
+                             progress=report if verbose else None, log_every=log_every)
+        history.append(dict(iteration=info['p_iterations'], objective=loss(p), **info))
     diag = dict(mode='fixed_reference', converged=info['p_conditional_kkt'] <= tolerance,
                 objective=history[-1]['objective'], stopping_KKT=info['p_conditional_kkt'],
                 reference_profiles_fixed=True, initialization='uniform' if initial_proportions is None else 'supplied',
@@ -182,6 +205,11 @@ def fit_reference(counts, reference_profiles, *, gene_ids=None, reference_gene_i
                 max_steps=max_steps, tolerance=tolerance, device=device, dtype='float64',
                 runtime_sec=time.perf_counter()-started)
     diag['termination_reason'] = 'conditional_P_KKT' if diag['converged'] else 'iteration_limit_or_stalled'
+    if verbose:
+        status = 'converged' if diag['converged'] else 'iteration limit reached or stalled; not converged'
+        print(f"[spDecon:reference] finished | {status} | iterations={info['p_iterations']} "
+              f"objective={diag['objective']:.9g} KKT={diag['stopping_KKT']:.3g} "
+              f"elapsed={diag['runtime_sec']:.1f}s", flush=True)
     return JointFit(p.cpu().numpy(), r.copy(), history, diag)
 
 

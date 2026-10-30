@@ -89,7 +89,7 @@ class MultiOmicsModel:
 def fit_multiomics(modalities, n_components=None, *, references=None, links=None,
                    edges=None, coordinates=None, sections=None, spatial_weight=.05, eta=None,
                    assay_weights=None, initial_proportions=None, initial_profiles=None,
-                   random_state=1, device='auto', **optimizer):
+                   random_state=1, device='auto', verbose=True, **optimizer):
     """Fit paired assays ordered by identical spot IDs.
 
     `modalities` and optional `references` are dictionaries keyed by assay.
@@ -119,6 +119,9 @@ def fit_multiomics(modalities, n_components=None, *, references=None, links=None
     offsets = np.r_[0, np.cumsum([a.shape[1] for a in ys])]
     fixed, indices = None, []
     device = device_name(device)
+    if verbose:
+        print(f"[spDecon:multiomics] preparing paired fit | assays={', '.join(names)} "
+              f"spots={n} seed={random_state}", flush=True)
     if references is not None:
         if set(references) != set(names):
             raise ValueError('Supply reference profiles for every modality')
@@ -161,7 +164,7 @@ def fit_multiomics(modalities, n_components=None, *, references=None, links=None
                 indices.append(ix+offsets[j])
             if any((y[:, ix].sum(0) <= 0).any() for ix in indices):
                 raise ValueError('Matched features must have positive observed signal')
-        p0, b0 = initial_factors(y, k, initial_proportions, initial_profiles, random_state, device)
+        p0, b0 = initial_factors(y, k, initial_proportions, initial_profiles, random_state, device, verbose)
     if edges is None and spatial_weight:
         if coordinates is None:
             raise ValueError('Supply edges or coordinates for spatial fitting')
@@ -171,7 +174,7 @@ def fit_multiomics(modalities, n_components=None, *, references=None, links=None
     edges = validate_edges(edges, n, sections)
     graph = SpatialLoss(edges, None, n, device, spatial_weight)
     model = MultiOmicsModel(y, graph, k, indices, eta, device, fixed)
-    state, history, diag = optimize(model, [torch.as_tensor(p0, device=device), torch.as_tensor(b0, device=device)], **optimizer)
+    state, history, diag = optimize(model, [torch.as_tensor(p0, device=device), torch.as_tensor(b0, device=device)], verbose=verbose, **optimizer)
     extra = dict(assays=np.asarray(names, str), feature_offsets=offsets, edges=edges,
                  assay_scales=scales, assay_weights=weights)
     if indices:

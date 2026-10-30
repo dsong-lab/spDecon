@@ -1,5 +1,6 @@
 """The three Section 1 initializations and their full-feature KL fits."""
 import time
+from dataclasses import replace
 
 import numpy as np
 from sklearn.decomposition import NMF, PCA
@@ -49,7 +50,7 @@ def _refine(counts, weights, profiles, seed, scale_floor, started, details, solv
     return fit
 
 
-def fit_initializations(counts, n_components, random_state=0, *, solver_config=None):
+def fit_initializations(counts, n_components, random_state=0, *, solver_config=None, verbose=None):
     """Fit all-feature, residual-feature, and expression-neighborhood branches.
 
     Initialization uses balanced/transformed measurements. Each branch's
@@ -61,8 +62,15 @@ def fit_initializations(counts, n_components, random_state=0, *, solver_config=N
     if not 1 <= k <= min(counts.shape):
         raise ValueError("n_components must be between 1 and min(counts.shape)")
     results = {}
+    solver_config = solver_config or SolverConfig(random_state=seed)
+    if isinstance(solver_config, dict):
+        solver_config = SolverConfig(**solver_config)
+    if verbose is not None:
+        solver_config = replace(solver_config, verbose=verbose)
 
     started = time.perf_counter()
+    if solver_config.verbose:
+        print(f"[spDecon] initialization 1/3: all features | seed={seed}", flush=True)
     weights, nmf = _kl_nmf(balanced, k, seed)
     profiles = np.maximum(nmf.components_, 0.0)
     results["all_features"] = _refine(
@@ -72,6 +80,8 @@ def fit_initializations(counts, n_components, random_state=0, *, solver_config=N
     )
 
     started = time.perf_counter()
+    if solver_config.verbose:
+        print("[spDecon] initialization 2/3: variable features", flush=True)
     feature_count = min(5000, max(k, int(np.ceil(0.25 * counts.shape[1]))))
     residuals = exposure_null_residuals(counts, exposure)
     selected = np.argsort(-residuals.var(axis=0), kind="mergesort")[:feature_count]
@@ -85,6 +95,8 @@ def fit_initializations(counts, n_components, random_state=0, *, solver_config=N
     )
 
     started = time.perf_counter()
+    if solver_config.verbose:
+        print("[spDecon] initialization 3/3: expression clusters", flush=True)
     selected = np.flatnonzero((counts > 0).mean(axis=0) > 0.05)
     if len(selected) < k:
         raise ValueError("Prevalence filter retained fewer than K features")

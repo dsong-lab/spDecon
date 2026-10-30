@@ -59,3 +59,28 @@ The :doc:`tutorial` notebooks provide complete calls with actual data, coefficie
 input ordering and output interpretation. Histology, multi-sample and multi-omics
 functions return ``JointFit`` objects with ``proportions``, ``profiles``,
 ``history``, ``diagnostics`` and mode-specific ``extra`` arrays.
+
+Progress output
+---------------
+
+The main fitting functions print progress by default. Initialization branches
+are named before they run; optimization reports its objective, KKT residuals and
+elapsed time at intervals, then explicitly states whether it converged or reached
+its iteration limit. The separate ATAC reference wrapper reports its start and
+final status.
+
+Use ``verbose=False`` to silence a fitting call. For the low-level core solver,
+set ``SolverConfig(verbose=False)``. The ``log_every`` parameter controls output
+frequency: the core defaults to 10 outer iterations, the strict reference solver
+to 1,000 steps, and joint optimization to 500 iterations. Joint messages are
+printed at the first convergence-check point at or after each output interval.
+Changing output frequency does not change convergence-check frequency.
+
+``objective`` is the complete normalized loss, including active penalties. KKT
+residuals measure constrained stationarity. Histories retain their existing
+evaluation frequency even when fewer rows are printed. Models with different
+penalties or data should not be ranked by their total loss values alone.
+
+The notebooks distinguish loading a saved full fit from running a new fit.
+Saved mode displays recorded training diagnostics; ``RUN_FIT=True`` enables live
+optimization output. Both paths retain the full dataset.

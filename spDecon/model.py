@@ -326,6 +326,10 @@ def fit_spdecon(
         counts, n_components, initial_proportions, initial_profiles
     )
     device, dtype = _torch_context(config)
+    if config.verbose:
+        print(f"[spDecon] optimization started | spots={len(counts)} features={counts.shape[1]} "
+              f"K={n_components} seed={config.random_state} device={device} "
+              f"max_outer={config.max_outer_iterations}", flush=True)
     exposure_np = counts.sum(axis=1)
     composition_np = counts / exposure_np[:, None]
     p = project_rows_lower_simplex(
@@ -405,8 +409,10 @@ def fit_spdecon(
             "p_backtracks": int(p_info["backtracks"]),
             "b_backtracks": int(b_info["backtracks"]),
         })
-        if config.verbose:
-            print(f"[spDecon {outer}] objective={objective:.9g} P-KKT={p_kkt:.3g} B-KKT={b_kkt:.3g}", flush=True)
+        if config.verbose and (outer == 1 or outer % config.log_every == 0):
+            print(f"[spDecon] iteration={outer} objective={objective:.9g} "
+                  f"P-KKT={p_kkt:.3g} B-KKT={b_kkt:.3g} relative_change={relative:.3g} "
+                  f"elapsed={time.perf_counter()-started:.1f}s", flush=True)
         previous_objective = objective
         if outer >= config.minimum_outer_iterations and stable >= config.convergence_patience:
             converged = True
@@ -440,4 +446,9 @@ def fit_spdecon(
         "tv_active": tv is not None, "tv_n_edges": 0 if tv is None else len(tv[0]),
         "final_TV": final["TV"],
     }
+    if config.verbose:
+        status = 'converged' if converged else 'iteration limit reached; not converged'
+        print(f"[spDecon] finished | {status} | iterations={len(history)} "
+              f"objective={final['objective']:.9g} P-KKT={final['p_kkt_max']:.3g} "
+              f"B-KKT={final['b_kkt_max']:.3g} elapsed={diagnostics['runtime_sec']:.1f}s", flush=True)
     return SpDeconFit(p_np, b_np, history, diagnostics, config.to_dict())
