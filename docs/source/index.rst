@@ -51,8 +51,6 @@ shows how to regenerate these images and their quantitative comparisons.
 
 Source code and notebooks:
 `dsong-lab/spDecon <https://github.com/dsong-lab/spDecon>`_.
-The documentation follows the lab's
-`spAlignDE tutorial format <https://dsong-lab.github.io/spAlignDE/tutorial.html>`_.
 
 .. toctree::
    :maxdepth: 2
@@ -61,8 +59,6 @@ The documentation follows the lab's
    installation
    model
    tutorial
-   data
-   reproducibility
    api
 
 .. toctree::

@@ -39,7 +39,7 @@ Model entry points
    * - ``spDecon.spatial.spatial_graph`` / ``calibrate`` / ``refine``
      - Coordinate graph, truth-free coefficient calibration and joint refinement
    * - ``spDecon.reference_spatial.fit``
-     - Strict fixed-reference RNA manuscript protocol
+     - Fixed-reference RNA fitting
    * - ``spDecon.reference.fit_reference`` / ``cell_fractions``
      - General fixed-profile fit and yield-based fraction conversion
    * - ``spDecon.reference.fit_reference_consensus``

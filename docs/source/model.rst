@@ -16,7 +16,7 @@ the components-by-features profiles. spDecon models
 
 The molecular loss is generalized KL divergence divided by total observed signal.
 For noninteger assay measurements it is used as a nonnegative reconstruction
-loss. The manuscript's profile matrix :math:`C` corresponds to ``B.T`` in code.
+loss.
 These weights measure contributions to the fitted molecular signal. Conversion
 to cell fractions requires reference yields and is performed explicitly in the
 reference-based RNA tutorial.

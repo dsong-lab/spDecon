@@ -1,7 +1,7 @@
 Installation
 ============
 
-The verified numerical environment is **Python 3.10.14 on Linux x86_64**, with
+The pinned environment uses **Python 3.10.14 on Linux x86_64**, with
 PyTorch 2.10.0 + CUDA 12.8, NumPy 1.26.4 and SciPy 1.13.1. Reference-free model
 training uses an NVIDIA GPU. The supplied fitted results and all tutorial plots
 can be inspected on a CPU; the strict RNA fixed-reference example also fits on CPU.
@@ -32,8 +32,7 @@ bundle from the versioned GitHub release if it is absent.
 
 **Saved outputs:** the default ``RUN_FIT=False`` loads complete previously fitted
 results and recomputes the tutorial metrics and plots. Change it to ``True`` to
-run the full model. This setting does not shorten iterations or reduce the data.
-The CRC 12-section fit is deliberately archived rather than retrained here.
+train the model. Set ``VERBOSE=True`` for fitting progress and convergence status.
 
 Optional image encoders
 -----------------------
