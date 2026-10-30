@@ -43,9 +43,13 @@ figures from complete fitted results.
      - :doc:`Tonsil <notebooks/06_joint_multiomics>`
 
 .. image:: _static/figures/g2_regions.png
-   :alt: Published G2 pathology alongside RNA and RNA plus histology region maps.
+   :alt: G2 H&E, pathology, RNA and RNA plus histology mixtures, with a shared enlarged window below.
 
-**Author:** Su Xu. Source code and notebooks:
+G2, left to right: H&E, pathology, RNA and RNA + H&E. The lower row enlarges
+the outlined region. The histology tutorial explains the region colors and
+shows how to regenerate these images and their quantitative comparisons.
+
+Source code and notebooks:
 `dsong-lab/spDecon <https://github.com/dsong-lab/spDecon>`_.
 The documentation follows the lab's
 `spAlignDE tutorial format <https://dsong-lab.github.io/spAlignDE/tutorial.html>`_.

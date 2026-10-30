@@ -5,7 +5,6 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "spDecon"
 version = "0.1.0"
-authors = [{name = "Su Xu"}]
 description = "Spatial molecular deconvolution with learned or fixed profiles"
 readme = "README.md"
 requires-python = ">=3.10"

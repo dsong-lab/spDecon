@@ -16,13 +16,13 @@ weights are outside this bundle.
      - Source measurements
    * - Cerebellum
      - 1,000 pseudo-spots × 1,000 genes; 11 types
-     - `Slide-seq SCP354 <https://singlecell.broadinstitute.org/single_cell/study/SCP354/slide-seq-study>`_; prepared cerebellum subset from the RETROFIT benchmark
+     - `Slide-seq SCP354 <https://singlecell.broadinstitute.org/single_cell/study/SCP354/slide-seq-study>`_; prepared cerebellum subset from the `RETROFIT benchmark <https://github.com/qunhualilab/retrofit-scripts>`_ (`archived data and scripts <https://doi.org/10.5281/zenodo.19241634>`_)
    * - Xenium lymph node
      - 256 pseudo-spots × 1,027 genes; 12 reference types
      - `Xenium Prime lymph node <https://www.10xgenomics.com/datasets/preview-data-xenium-prime-gene-expression>`_; `Flex 320k scFFPE <https://www.10xgenomics.com/datasets/320k_scFFPE_16-plex_GEM-X_FLEX>`_ library LNReactive_BC9-10 for the reference
    * - HER2ST G2
      - 467 spots × 14,898 genes; 32 morphology bins
-     - `Processed HER2ST deposit <https://doi.org/10.5281/zenodo.4751624>`_, including registered H&E and pathological annotations
+     - `Processed HER2ST deposit <https://zenodo.org/records/4751624>`_, including registered H&E and pathological annotations
    * - RCC
      - 1,595 matched spots; 405 RNA genes and 27 proteins
      - `Xenium Protein FFPE Human Renal Carcinoma <https://www.10xgenomics.com/datasets/xenium-protein-ffpe-human-renal-carcinoma>`_
@@ -63,3 +63,25 @@ The G2 morphology matrix was regenerated from its H&E image using
 under the respective model terms. Derived image features are for research use
 under those applicable terms; the repository does not grant new rights to source
 datasets or third-party models.
+
+
+HER2ST original downloads
+-------------------------
+
+The public G2 deposit provides `count matrices <https://zenodo.org/records/4751624/files/count-matrices.zip?download=1>`_,
+`H&E images <https://zenodo.org/records/4751624/files/images.zip?download=1>`_,
+`metadata <https://zenodo.org/records/4751624/files/meta.zip?download=1>`_ and
+`spot annotations <https://zenodo.org/records/4751624/files/spot-selections.zip?download=1>`_.
+Follow the extraction instructions on the deposit page and select G2. The
+tutorial release collects the registered G2 inputs in one folder and supplies
+the derived HIPT/UNI morphology matrix; the notebook also shows how to regenerate
+that matrix from the image.
+
+Tonsil display coordinates
+--------------------------
+
+The Tonsil bundle records Visium array rows and columns. Its notebook converts
+them to a regular hexagonal lattice before plotting, with equal axis aspect.
+Only joint-model weights are displayed. Each component has a labelled colorbar
+ending at its own 99th percentile; the complete weights remain unchanged in the
+exported table.

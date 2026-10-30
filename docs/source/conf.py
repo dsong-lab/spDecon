@@ -1,6 +1,5 @@
 project = 'spDecon'
-author = 'Su Xu'
-copyright = '2026, Su Xu'
+html_show_copyright = False
 release = '0.1.0'
 extensions = ['myst_nb', 'sphinx.ext.mathjax']
 html_theme = 'sphinx_rtd_theme'

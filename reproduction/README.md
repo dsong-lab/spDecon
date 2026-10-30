@@ -1,6 +1,6 @@
 # Complete-data reproduction record
 
-Author: Su Xu. Prepared 30 October 2026.
+Prepared 30 October 2026.
 
 The preceding reproduction campaign completed 262 planned final fits, all with
 converged final solutions, and independently recalculated their objective values.
@@ -26,7 +26,8 @@ sentence in every later manuscript revision.
 - `crc_full_data_model_check.json`: the published hierarchical objective and
   five-cycle auxiliary update evaluated on the complete 102,544-spot, 480-gene
   CRC data. The full optimizer was not retrained.
-- `tutorial_metrics.csv`: metrics recalculated directly by the executed notebooks.
+- `tutorial_metrics.csv`: metrics recalculated directly by the executed notebooks,
+  including G2 region-wise PCC and Tonsil joint-component display limits.
 
 The main RNA fixed-reference recipe uses 100,000 steps and KKT 1e-10. The reviewed
 manuscript draft's 3,000 / 1e-6 entry in that paragraph needs correction; those
@@ -41,3 +42,9 @@ trajectory; the tutorial therefore labels the CRC figures as archived results.
 Pinned dependencies, explicit seeds and optional deterministic kernels support
 repeatable new analyses. Cross-device or cross-version bitwise equality is not
 assumed. No manuscript source files or raw encoder weights are distributed here.
+
+The revised G2 figures retain the same 402-spot scores and the manuscript's fixed
+illustrative zoom. The Tonsil maps use the Visium hexagonal coordinate transform,
+verified against all 4,908 original spot records. The eleven displayed components
+come only from the joint fit, with labelled per-component 99th-percentile color
+limits. These display changes leave the complete fitted weights unchanged.

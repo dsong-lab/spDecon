@@ -1,7 +1,5 @@
 # spDecon
 
-**Author: Su Xu**
-
 Spatial molecular deconvolution with learned or fixed profiles, histology guidance,
 structured sample variation, and paired multi-omics measurements.
 
@@ -41,6 +39,26 @@ executed metric cells and figures. The website follows the
 | **Joint multi-omics** | Tonsil: shared RNA/protein weights and eleven spatial components | [06](tutorials/06_joint_multiomics.ipynb) |
 
 ![G2 pathology, RNA and RNA plus histology structures](docs/source/_static/figures/g2_regions.png)
+
+The G2 plate shows H&E, pathology, RNA and RNA + H&E from left to right;
+the lower row enlarges the outlined region.
+
+## Public data sources
+
+All six examples use public datasets. The links below identify the original
+measurements and annotations; the [tutorial data release](https://github.com/dsong-lab/spDecon/releases/tag/tutorial-data-v0.1.0)
+contains the processed inputs and saved spDecon results used by the notebooks.
+Each notebook links its own sources and explains how to load inputs, fit the model
+and regenerate its displayed results.
+
+| Example | Original public sources |
+|---|---|
+| Cerebellum | [Slide-seq SCP354](https://singlecell.broadinstitute.org/single_cell/study/SCP354/slide-seq-study); [RETROFIT preparation scripts](https://github.com/qunhualilab/retrofit-scripts) and [archived benchmark](https://doi.org/10.5281/zenodo.19241634) |
+| Xenium lymph node | [Xenium Prime target](https://www.10xgenomics.com/datasets/preview-data-xenium-prime-gene-expression); [Flex 320k scFFPE reference](https://www.10xgenomics.com/datasets/320k_scFFPE_16-plex_GEM-X_FLEX), library LNReactive_BC9-10 |
+| HER2ST G2 | [HER2ST Zenodo deposit](https://zenodo.org/records/4751624): counts, H&E images, coordinates and pathology annotations |
+| RCC | [Xenium Protein FFPE Human Renal Carcinoma](https://www.10xgenomics.com/datasets/xenium-protein-ffpe-human-renal-carcinoma) |
+| CRC | [GEO GSE294385](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE294385); [CRC_micromets_ST pathology and code](https://github.com/yliuup/CRC_micromets_ST) |
+| Tonsil | [Visium CytAssist Human Tonsil Gene and Protein Expression](https://www.10xgenomics.com/datasets/visium-cytassist-gene-and-protein-expression-library-of-human-tonsil-with-add-on-antibodies-h-e-6-5-mm-ffpe-2-standard) |
 
 ## Installation
 

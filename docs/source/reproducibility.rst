@@ -80,8 +80,14 @@ Model-to-manuscript details
 * The code uses row-oriented ``B``; the paper uses the transpose ``C``. The
   multi-omics comparable-profile scaling is likewise an equivalent convention.
 * G2 quantitative improvements use the same 402-spot support as the paper.
-  The G2 score plot is an analogue of the Figure 3B presentation, whose original
-  dataset is Normal1; it is not relabelled as that exact panel.
+  Region-wise PCC uses the paired-marker layout of the Normal1 comparison;
+  the three overall scores use vertical stems and points. The text-free spatial
+  plate uses the fixed G2 manuscript crop. The plotted values are recomputed
+  from the G2 reproduction and are not relabelled as Normal1 results.
+* Tonsil displays only the joint model's eleven components. Its array indices
+  are converted to Cartesian hexagonal coordinates, with equal aspect. Each
+  component's labelled colorbar ends at its 99th percentile; exported weights
+  retain the full numerical range.
 * CRC's tutorial uses the actual **480-gene** fit from the 500-gene candidate
   panel. Its full 12-section training remains archived. The released objective
   and five-cycle profile update were compared on all 102,544 spots against the
