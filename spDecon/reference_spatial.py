@@ -93,4 +93,3 @@ def fit(counts, reference, edge_i, edge_j, weights, strength, max_steps=3000, to
         runtime_sec=time.perf_counter()-started, reference_fixed=True,
         initialization='uniform', solver='native projected-gradient/row BB extended with joint Armijo',
         dtype='float64', device='cpu', truth_used=False, histology_used=False)
-

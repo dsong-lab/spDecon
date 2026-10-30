@@ -1,5 +1,5 @@
 spDecon
-=======
+========
 
 Spatial molecular deconvolution across RNA, histology, samples and modalities.
 
