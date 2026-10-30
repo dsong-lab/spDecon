@@ -1,0 +1,31 @@
+tutorial_table,metric,value,component,top_profile_markers,mean_weight,model,PCC,ARI,Boundary F1,n,RNA_component,protein_component,display_PCC,group
+cerebellum_summary,Mean type PCC,0.9499915418359008,,,,,,,,,,,,
+cerebellum_summary,RMSE,0.0792401743106051,,,,,,,,,,,,
+crc_component_summary,,,C1,"ALB, HRG, HAL, ITIH2, SLC10A1",0.354467656033236,,,,,,,,,
+crc_component_summary,,,C2,"COL1A2, COL3A1, COL1A1, CTHRC1, VCAN",0.1005160608342849,,,,,,,,,
+crc_component_summary,,,C3,"CKB, TSPAN8, MAL2, GPR160, POF1B",0.0962362425251131,,,,,,,,,
+crc_component_summary,,,C4,"MMP9, SPP1, GPNMB, MMP12, CHI3L1",0.0420180660145271,,,,,,,,,
+crc_component_summary,,,C5,"ADAMTS1, FBLN1, HBA2, SPARCL1, C11orf96",0.0813433042663035,,,,,,,,,
+crc_component_summary,,,C6,"FABP1, SPINK1, PLCB4, SLC26A2, SLPI",0.0677861061224387,,,,,,,,,
+crc_component_summary,,,C7,"CYP1A2, BHMT, ADH4, RDH16, ADH1A",0.0892161142558649,,,,,,,,,
+crc_component_summary,,,C8,"IGKC, IGHA1, IGHG1, IGLC1, IGHM",0.024986565419168,,,,,,,,,
+crc_component_summary,,,C9,"CRP, CREB3L3, HAMP, LBP, FGL1",0.0631358826512057,,,,,,,,,
+crc_component_summary,,,C10,"NOTUM, NKD1, SLC2A1, ID1, IER3",0.0802940018778577,,,,,,,,,
+g2_paired_metrics,,,,,,RNA_TV,0.447551849725045,0.2471999391448553,0.4285714285714285,402.0,,,,
+g2_paired_metrics,,,,,,RNA_HE_TV,0.5412909000116636,0.3816002922656758,0.4744376278118609,402.0,,,,
+rcc_display_matching,,,,,,,,,,,1.0,8.0,0.5931609945353967,
+rcc_display_matching,,,,,,,,,,,2.0,2.0,0.4710571852843858,
+rcc_display_matching,,,,,,,,,,,3.0,7.0,0.8600766264240723,
+rcc_display_matching,,,,,,,,,,,4.0,5.0,0.7994635179766304,
+rcc_display_matching,,,,,,,,,,,5.0,9.0,0.5976307726851615,
+rcc_display_matching,,,,,,,,,,,6.0,6.0,0.6014804977674573,
+rcc_display_matching,,,,,,,,,,,7.0,3.0,0.9882817082241008,
+rcc_display_matching,,,,,,,,,,,8.0,1.0,0.4219783520742119,
+rcc_display_matching,,,,,,,,,,,9.0,4.0,0.8685732722356464,
+xenium_group_correlations,,,,,,,0.970574462400184,,,,,,,B
+xenium_group_correlations,,,,,,,0.9382888853820848,,,,,,,Plasma
+xenium_group_correlations,,,,,,,0.8431212644698307,,,,,,,DC
+xenium_group_correlations,,,,,,,0.8761340244381726,,,,,,,CD4T
+xenium_group_correlations,,,,,,,0.3339497054793742,,,,,,,CD8T
+xenium_group_correlations,,,,,,,0.8385788755906032,,,,,,,Macrophage
+xenium_group_correlations,,,,,,,0.9259524961038992,,,,,,,Mast

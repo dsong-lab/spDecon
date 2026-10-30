@@ -1,0 +1,17 @@
+:root { --sp-blue: #315a79; --sp-teal: #247a78; }
+.wy-side-nav-search { background: var(--sp-blue); }
+.wy-nav-content { max-width: 1120px; }
+.rst-content { font-size: 16px; line-height: 1.6; }
+.rst-content h1 { color: var(--sp-blue); font-size: 2.15rem; }
+.rst-content h2 { color: var(--sp-blue); margin-top: 2rem; }
+a { color: #246b94; }
+.wy-menu-vertical a { font-size: 14.4px; }
+.wy-side-scroll { overflow-y: auto; }
+.rst-content table.docutils td { white-space: normal; vertical-align: top; }
+.rst-content .wy-table-responsive { overflow-x: auto; }
+.rst-content pre { font-size: 13px; line-height: 1.5; }
+.rst-content img { height: auto; }
+.rst-content .highlight { background: #f6f8fa; }
+.hero { padding: 20px 24px; margin: 22px 0; border-left: 4px solid var(--sp-teal); background: #f2f7f8; }
+.hero p:last-child { margin-bottom: 0; }
+@media (max-width: 768px) { .wy-nav-content { padding: 1.5em; } }

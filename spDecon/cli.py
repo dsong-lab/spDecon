@@ -1,7 +1,5 @@
 """spDecon Section 1 reference-free spot-level deconvolution with KL + TV."""
 import argparse
-import hashlib
-import json
 import os
 from pathlib import Path
 import time
@@ -14,30 +12,16 @@ import pandas as pd
 import torch
 
 from .config import SolverConfig
+from ._io import read_frame, write_json
 from .consensus import build_consensus
 from .spatial import ALPHA_S, EPSILON, CALIBRATION_SEED, spatial_graph, calibrate, refine
 
 ROOT = Path(__file__).resolve().parent
 
 
-def write_json(path, value):
-    def serial(v):
-        if isinstance(v, np.ndarray): return v.tolist()
-        if isinstance(v, np.generic): return v.item()
-        raise TypeError(type(v).__name__)
-    path.write_text(json.dumps(value, indent=2, default=serial)+'\n')
-
-
-def read_frame(path):
-    frame = pd.read_csv(path, index_col=0, keep_default_na=False)
-    frame.index, frame.columns = frame.index.astype(str), frame.columns.astype(str)
-    if not frame.index.is_unique or not frame.columns.is_unique:
-        raise ValueError(f'Duplicate identifiers: {path}')
-    return frame
-
-
 def main():
-    ap = argparse.ArgumentParser(prog='run_spdecon.py', description=__doc__)
+    ap = argparse.ArgumentParser(prog='run_spdecon.py', description=__doc__,
+        epilog='Other models: reference, histology, multisample, multiomics. Use run_spdecon.py MODEL --help.')
     ap.add_argument('--counts', type=Path, required=True, help='Raw counts CSV: spots x genes, first column spot ID')
     ap.add_argument('--coordinates', type=Path, required=True, help='CSV with spot ID, x, y; optionally block')
     ap.add_argument('--blocks', type=Path, help='Optional CSV with spot ID and block; required for multiple sections unless coordinates contain block')
@@ -45,9 +29,12 @@ def main():
     ap.add_argument('--counts-order', choices=['F', 'C'], default='F',
                     help='Dense count memory layout (default: F)')
     ap.add_argument('--seeds', nargs='+', type=int, default=[1, 3, 5])
+    ap.add_argument('--deterministic', action='store_true', help='Use deterministic CUDA kernels and fixed RNG states; may differ from historical float32 fits')
     ap.add_argument('--spatial-weight', type=float, help='Explicit lambda override; 0 is the RNA-only control. Default: seed-1 gradient calibration')
     ap.add_argument('--output', type=Path, required=True, help='New output directory')
     args = ap.parse_args()
+    from .reproducibility import set_seed
+    set_seed(args.seeds[0], deterministic=args.deterministic)
     if args.output.exists():
         ap.error('Output already exists; choose a new directory')
     if len(set(args.seeds)) != len(args.seeds) or min(args.seeds) < 0:
@@ -76,17 +63,12 @@ def main():
     np.savez_compressed(args.output/'graph.npz', edge_i=i, edge_j=j, weight=w,
                         spot_ids=x.index.to_numpy(str), blocks=blocks)
     write_json(args.output/'graph_info.json', graph_info)
-    source_files = sorted(ROOT.glob('*.py')) + [ROOT.parent/'run_spdecon.py']
-    input_files = [args.counts, args.coordinates]+([args.blocks] if args.blocks else [])
-    sha = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
     write_json(args.output/'config.json', dict(pipeline='spDecon_consensus_spatial_TV',
         K=args.k, seeds=args.seeds, counts_order=args.counts_order, alpha_s=ALPHA_S, epsilon=EPSILON,
         calibration_seed=CALIBRATION_SEED, lambda_override=args.spatial_weight,
         graph=graph_info, final_optimizer=SolverConfig(random_state=1).to_dict(),
         start_stage='unrefined_consensus', truth_used=False,
-        torch_version=torch.__version__,
-        source_sha256={str(p.resolve()): sha(p) for p in source_files},
-        input_sha256={str(p.resolve()): sha(p) for p in input_files}))
+        torch_version=torch.__version__, deterministic_algorithms=args.deterministic))
     started = time.perf_counter()
     calibration_fit = None
     if args.spatial_weight is None:

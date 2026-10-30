@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spDecon"
+version = "0.1.0"
+authors = [{name = "Su Xu"}]
+description = "Spatial molecular deconvolution with learned or fixed profiles"
+readme = "README.md"
+requires-python = ">=3.10"
+dynamic = ["dependencies"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[tool.setuptools.packages.find]
+include = ["spDecon*"]
+
+[tool.setuptools.package-data]
+"spDecon._atac_reference" = ["README.txt"]

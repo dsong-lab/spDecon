@@ -1,1 +1,1 @@
-"""spDecon: Section 1 reference-free spot-level KL + TV deconvolution."""
+"""spDecon: spot-level KL deconvolution with reference, image and joint-data models."""

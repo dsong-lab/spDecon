@@ -1,166 +1,173 @@
 # spDecon
 
-spDecon performs reference-free, spot-level deconvolution of spatial gene
-expression counts. It estimates component weights for each spot and a gene
-expression profile for each component, without a single-cell reference.
+**Author: Su Xu**
 
-This repository contains the model used in Section 1 of the manuscript:
-three initialization branches, full-gene KL fitting, profile alignment and
-consensus, followed by joint KL + spatial total variation (TV) optimization.
+Spatial molecular deconvolution with learned or fixed profiles, histology guidance,
+structured sample variation, and paired multi-omics measurements.
 
-## Core code
+[Documentation](https://dsong-lab.github.io/spDecon/) ·
+[Step-by-step tutorials](https://dsong-lab.github.io/spDecon/tutorial.html) ·
+[Example data](https://github.com/dsong-lab/spDecon/releases/tag/tutorial-data-v0.1.0)
 
-The optimizer is **[`spDecon/model.py`](spDecon/model.py)**. Its
-`fit_spdecon()` function jointly estimates spot weights `P` and component
-profiles `B`. The same solver fits the initialization branches with TV disabled.
+## The core model
 
-| File | Role |
-| --- | --- |
-| [`run_spdecon.py`](run_spdecon.py) | Command-line entry point. |
-| [`spDecon/cli.py`](spDecon/cli.py) | Complete workflow and input/output handling. |
-| [`spDecon/model.py`](spDecon/model.py) | Simplex-constrained KL + TV optimizer. |
-| [`spDecon/initialization.py`](spDecon/initialization.py) | Three initializations and their full-gene KL fits. |
-| [`spDecon/consensus.py`](spDecon/consensus.py) | Profile alignment and equal-weight consensus. |
-| [`spDecon/spatial.py`](spDecon/spatial.py) | Coordinate graph and spatial-weight calibration. |
-| [`spDecon/preprocessing.py`](spDecon/preprocessing.py) | Exposure balancing and residuals for initialization. |
-| [`spDecon/clustering.py`](spDecon/clustering.py) | Fixed-K expression clustering using Scanpy and igraph. |
-| [`spDecon/config.py`](spDecon/config.py) | Numerical solver settings. |
+spDecon represents each spot as a mixture of molecular components:
+`Y ≈ diag(exposure) @ P @ B`. Here `P` contains spot weights and `B` contains
+component profiles; both have unit row sums. The objective combines a
+count-normalized Poisson/KL reconstruction loss with optional spatial total
+variation and analysis-specific terms. The manuscript writes the profile matrix
+as `C = B.T`.
+
+Reference-free initialization fits three count-only branches, aligns their
+profiles, and averages them equally before joint refinement. The same framework
+supports fixed reference signatures, RNA–morphology reconstruction, nested
+subject/condition profiles, and shared mixtures across paired assays. Molecular
+weights describe signal contributions. Reference-based cell fractions additionally
+use per-type reference yields.
+
+## Six complete tutorials
+
+Each notebook contains model explanations, input preparation, full fitting calls,
+executed metric cells and figures. The website follows the
+[spAlignDE tutorial format](https://dsong-lab.github.io/spAlignDE/tutorial.html).
+
+| Workflow | Example and output | Notebook |
+|---|---|---|
+| **Reference-free** | Cerebellum: 1,000 pseudo-spots, correlation matrix and composition pie plots | [01](tutorials/01_reference_free.ipynb) |
+| **Reference-based** | Xenium lymph node: fixed signatures, cell fractions and seven-group correlations | [02](tutorials/02_reference_based.ipynb) |
+| **Histology-guided** | HER2ST G2: HIPT/UNI extraction, paired structure maps and quantitative improvement | [03](tutorials/03_histology.ipynb) |
+| **Cross-modality comparison** | RCC: independently fitted RNA and protein structures in one comparison figure | [04](tutorials/04_cross_modality.ipynb) |
+| **Joint multi-sample** | CRC: shared/patient/condition profiles and all 12 sections on the 480-gene panel | [05](tutorials/05_multisample.ipynb) |
+| **Joint multi-omics** | Tonsil: shared RNA/protein weights and eleven spatial components | [06](tutorials/06_joint_multiomics.ipynb) |
+
+![G2 pathology, RNA and RNA plus histology structures](docs/source/_static/figures/g2_regions.png)
 
 ## Installation
 
-Use Python 3.10 and an NVIDIA GPU with CUDA-enabled PyTorch. The complete
-workflow requires CUDA and loads the count matrix into memory.
+The verified numerical environment uses **Python 3.10.14, PyTorch 2.10.0 + CUDA
+12.8, NumPy 1.26.4 and SciPy 1.13.1** on Linux x86_64. Reference-free training
+uses an NVIDIA GPU. Saved-fit evaluation and tutorial plotting run on CPU.
 
 ```bash
 git clone https://github.com/dsong-lab/spDecon.git
 cd spDecon
 python3.10 -m venv .venv
 source .venv/bin/activate
-python -m pip install --upgrade pip
-
-# Build used for validation; select a compatible build for your NVIDIA driver.
-python -m pip install torch==2.10.0 --index-url https://download.pytorch.org/whl/cu128
-python -m pip install -r requirements.txt
-python -c "import torch; print(torch.__version__); print('CUDA available:', torch.cuda.is_available())"
+unset PYTHONPATH
+export PYTHONNOUSERSITE=1
+python -m pip install -r requirements.lock.txt
+python -m pip install --no-deps --no-build-isolation -e .
+python -m pip install -r requirements-notebooks.txt
 ```
 
-`CUDA available` must be `True`. Other PyTorch builds are listed on the
-[PyTorch installation page](https://pytorch.org/get-started/locally/).
+Alternatively use `conda env create -f environment.yml`, then install the package
+and notebook requirements. Open `tutorials/*.ipynb` in Jupyter or VS Code with this
+Python environment. Example data are downloaded automatically from the versioned
+release on first use.
 
-## Input and run
+By default, `RUN_FIT=False` loads complete saved fits and recomputes metrics and
+figures. Set it to `True` to run the complete fitting code. The CRC 12-section
+result is archived and was not retrained for this release; its 480 genes are the
+retained portion of the 500-gene candidate panel. No dataset is reduced for these
+notebook outputs.
 
-Provide two CSV files with unique spot IDs in the first column:
+## Run the reference-free core
 
-- `counts.csv`: spots by genes, with unique gene names and raw, nonnegative
-  counts. Do not normalize or log-transform the input; remove empty spots.
-- `coordinates.csv`: numeric `x` and `y` columns for the same spots.
-  Coordinates are reordered to match the count matrix automatically.
-
-For example, the file formats are:
-
-```csv
-spot_id,GeneA,GeneB,GeneC
-spot_1,12,3,0
-spot_2,7,8,1
-spot_3,0,4,15
-```
-
-```csv
-spot_id,x,y
-spot_1,0,0
-spot_2,1,0
-spot_3,2,0
-```
-
-These snippets illustrate the formats, not a fitting dataset. If coordinates
-cover multiple tissue sections, add a `block` column identifying each section,
-or supply a spot-indexed CSV with a `block` column via `--blocks`. Graph edges
-stay within each section. Each section needs at least two spots and positive
-median nearest-neighbor spacing.
-
-Choose `K`, the number of latent components, for your dataset:
+Counts CSVs contain spots in rows and features in columns, with spot IDs in the
+first column. Coordinates use the same IDs and `x,y` columns; an optional `block`
+column identifies physical sections.
 
 ```bash
-python run_spdecon.py \
-  --counts counts.csv \
-  --coordinates coordinates.csv \
-  --k 5 \
-  --seeds 1 \
-  --output results/my_sample
+python run_spdecon.py core \
+  --counts X.csv --coordinates coords.csv \
+  --k 11 --seeds 1 3 5 --deterministic --output runs/example
 ```
 
-The output directory must be new. Omit `--seeds` to run seeds `1 3 5`.
-Components are aligned between branches within each seed; numbering across
-seeds may differ. Spatial weight is calibrated once from the seed-1 consensus
-and reused across seeds. `--spatial-weight VALUE` overrides calibration;
-zero disables TV. Coordinates are still required by this command.
-Run `python run_spdecon.py --help` for all options.
+This fits all three initializations, aligns profiles, and jointly refines the
+consensus under KL + TV. The spatial coefficient is calibrated once from seed 1
+unless specified explicitly. Output includes factors, optimization history,
+settings and convergence diagnostics. Use raw nonnegative measurements and a new
+output directory.
 
-## Model
+## Python interfaces
 
-For counts `Y` (spots by genes), the objective is normalized generalized KL
-divergence plus smoothed graph TV:
+```python
+from spDecon.reproducibility import set_seed
+from spDecon.consensus import build_consensus
+from spDecon.reference_spatial import fit as fit_fixed_reference
+from spDecon.reference import fit_reference, fit_reference_consensus, cell_fractions
+from spDecon.image_features import extract_histology
+from spDecon.histology import fit_histology
+from spDecon.multisample import fit_multisample
+from spDecon.multiomics import fit_multiomics
 
-```text
-s[i] = sum_g Y[i, g]
-M = diag(s) @ P @ B
-loss = D_KL(Y || M) / sum(Y) + lambda * TV(P)
-D_KL(Y || M) = sum_{i,g} [Y[i,g] * log(Y[i,g] / M[i,g]) - Y[i,g] + M[i,g]]
-TV(P) = sum_{(i,j)} w[i,j] * (sqrt(||P[i,:] - P[j,:]||_2^2 + epsilon^2) - epsilon)
-        / sum_{(i,j)} w[i,j]
+set_seed(0, deterministic=True)
 ```
 
-The logarithmic term is zero where `Y[i,g] = 0`. Both `P` (spots by components)
-and `B` (components by genes) are nonnegative and row-normalized. Relative to
-the manuscript notation, `Y = G.T`, `B = C.T`, and code `P` is the transpose
-of manuscript `P`. The KL term also equals a Poisson negative log-likelihood
-up to a parameter-independent constant and normalization.
+- **Reference-free:** `build_consensus` provides count-only initial factors;
+  `spDecon.spatial.refine` fits the final spatial model.
+- **Reference-based:** the strict main RNA recipe uses
+  `fit_fixed_reference(..., tolerance=1e-10, max_steps=100000)` and spatial weight
+  zero. `cell_fractions` performs reference-yield conversion. The separate ATAC
+  reference protocol is available through `fit_reference_consensus`.
+- **Histology:** `extract_histology` converts registered H&E into HIPT/UNI
+  embeddings, PCA scores, visual-word dictionaries and 32-bin spot morphology.
+  `fit_histology` shares spot weights between RNA and morphology, with image-gated
+  spatial smoothing.
+- **Joint multi-sample:** `fit_multisample` learns shared and subject-specific
+  profiles. Use `group_by=['subject_id', 'condition']` and
+  `subject_column='subject_id'` for nested condition effects. Graphs stay within
+  sections. Both deviation penalties enter optimization.
+- **Joint multi-omics:** `fit_multiomics` balances paired assays, learns one
+  shared spot-weight matrix and couples explicitly linked features. It also
+  supports fixed references with no learned modality-deviation penalty.
+- **Independent cross-modality analysis:** run the core separately on each assay,
+  then compare structures, as in RCC. This is distinct from joint fitting.
 
-1. Initialize using all genes, exposure-residual feature selection, and
-   expression-neighborhood Louvain clustering. Refine each branch against
-   all genes of the original counts using KL loss.
-2. Align component profiles to the all-gene branch using cosine similarity
-   and Hungarian matching, then average the three branches equally.
-3. Starting directly from this consensus, jointly update `P` and `B` with
-   KL + TV. `P` uses projected-gradient updates; `B` uses mixture EM updates.
-
-The spatial graph uses symmetric four-nearest-neighbor edges, restricted to
-distances at most 1.5 times each section's median nearest-neighbor spacing,
-with Gaussian distance weights. TV uses `epsilon = 0.02`; the seed-1 gradient
-calibration uses a spatial-to-KL gradient ratio of `0.05`.
-
-`P` represents component signal weights. Cell-type names and interpretation
-as cell-number fractions require biological validation.
-
-## Output
-
-Each `seed_<n>/` directory contains:
-
-| File | Contents |
-| --- | --- |
-| `P.csv` | Spot-by-component weights; each row sums to one. |
-| `B.csv` | Component-by-gene profiles; each row sums to one. |
-| `fit.npz` | Final factors, initial consensus, spot/gene IDs, and library sizes. |
-| `branches.npz` | Aligned factors and component permutations for the three branches. |
-| `history.csv` | Objective, KL, TV, and convergence checks per iteration. |
-| `diagnostics.json` | Final and branch convergence information and model settings. |
-
-The output root contains the graph, calibration, configuration, input/source
-hashes, and `COMPLETE.json`. Automatic calibration also saves
-`calibration_consensus.npz`. Nonconverged fits retain their outputs and exit
-with an error; inspect their diagnostics.
-
-## Validation
+## HIPT and UNI image features
 
 ```bash
-python tests/check_model.py       # CPU: KL/TV gradients and constrained fitting
-python tests/check_clustering.py  # CPU: fixed-K clustering
-python tests/smoke.py             # CUDA: complete workflow and output validation
+python -m pip install -r requirements-histology.lock.txt
+git clone https://github.com/dsong-lab/spEnhance.git external/spEnhance
 ```
 
-The workflow uses float32 on CUDA. TV-gradient accumulation can vary between
-runs, so a fixed seed does not guarantee identical factors. Very small losses
-can also fail the relative-change convergence check in float32 despite passing
-the projected-gradient checks.
+Obtain HIPT's `vit256_small_dino.pth` and `vit4k_xs_dino.pth` from the
+[official HIPT release](https://github.com/mahmoodlab/HIPT), placing them in
+`external/spEnhance/checkpoints/`. Request [UNI access](https://huggingface.co/MahmoodLab/UNI)
+and authenticate locally. The [G2 notebook](tutorials/03_histology.ipynb) supplies
+executable extraction code, image resolution, spot centers and capture radius.
+Weights remain subject to their original terms and are not redistributed.
 
-Maintainer: [Su Xu](https://github.com/sxu509).
+## Reproducibility and manuscript alignment
+
+The preceding complete-data campaign finished 262 planned final fits and
+independently recomputed their objectives. The tutorials use those full
+reproductions, except for the explicitly archived CRC fit. All six notebooks have
+executed outputs. The numerical locks include the initialization dependencies
+that affected earlier environment reproducibility.
+
+Results are close to the paper, with differences preserved in
+[reproduction tables](reproduction/README.md). For example, RCC held-out PCC is
+0.689139 in the ordinary full rerun versus 0.699004 archived; deterministic solver
+replay gives 0.695808. These are not presented as identical results. Main RNA
+fixed-reference settings are **100,000 steps / KKT 1e-10**, correcting the reviewed
+draft's 3,000 / 1e-6 description for that specific protocol.
+
+The multi-sample model includes the manuscript's five-cycle auxiliary profile
+update. Its objective and that update were checked on the complete CRC dataset;
+a new full 12-section training trajectory was not run. See
+[model details](https://dsong-lab.github.io/spDecon/model.html) and
+[reproduction scope](https://dsong-lab.github.io/spDecon/reproducibility.html).
+
+## Build and publish the documentation
+
+```bash
+python3.10 -m venv .docs-venv
+.docs-venv/bin/python -m pip install -r docs/requirements.txt
+.docs-venv/bin/python tools/build_docs.py
+```
+
+The build renders saved notebook outputs using Sphinx and the Read the Docs theme.
+The GitHub Actions documentation workflow publishes it to GitHub Pages.
+Source data and third-party models retain their original attribution and terms;
+see [data provenance](https://dsong-lab.github.io/spDecon/data.html).

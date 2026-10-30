@@ -47,9 +47,9 @@ def align_to_reference_profiles(reference_profiles, proportions, profiles):
     return proportions[:, order], profiles[order], order, similarity[np.arange(len(order)), order]
 
 
-def build_consensus(counts, n_components, *, random_state=0):
+def build_consensus(counts, n_components, *, random_state=0, solver_config=None):
     """Fit three branches and return the unrefined consensus for the TV fit."""
-    fits = fit_initializations(counts, n_components, random_state)
+    fits = fit_initializations(counts, n_components, random_state, solver_config=solver_config)
     reference = fits["all_features"]
     reference_p = np.asarray(reference.proportions, dtype=float)
     reference_b = np.asarray(reference.profiles, dtype=float)

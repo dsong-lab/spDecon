@@ -36,20 +36,20 @@ def _kl_nmf(values, k, seed):
     return estimator.fit_transform(values), estimator
 
 
-def _refine(counts, weights, profiles, seed, scale_floor, started, details):
+def _refine(counts, weights, profiles, seed, scale_floor, started, details, solver_config=None):
     component_scale = np.maximum(profiles.sum(axis=1), scale_floor)
     initial_p = row_normalize(weights * component_scale[None, :])
     initial_b = row_normalize(profiles)
     fit = fit_spdecon(
         counts, weights.shape[1], initial_p, initial_b,
-        SolverConfig(random_state=seed),
+        solver_config or SolverConfig(random_state=seed),
     )
     fit.diagnostics.update(details)
     fit.diagnostics["standalone_runtime_sec"] = time.perf_counter() - started
     return fit
 
 
-def fit_initializations(counts, n_components, random_state=0):
+def fit_initializations(counts, n_components, random_state=0, *, solver_config=None):
     """Fit all-feature, residual-feature, and expression-neighborhood branches.
 
     Initialization uses balanced/transformed measurements. Each branch's
@@ -68,7 +68,7 @@ def fit_initializations(counts, n_components, random_state=0):
     results["all_features"] = _refine(
         counts, weights, profiles, seed, 1e-12, started,
         {"initialization": "all-feature NNDSVDa + KL-NMF",
-         "initialization_nmf_iterations": int(nmf.n_iter_)},
+         "initialization_nmf_iterations": int(nmf.n_iter_)}, solver_config,
     )
 
     started = time.perf_counter()
@@ -81,7 +81,7 @@ def fit_initializations(counts, n_components, random_state=0):
         counts, weights, profiles, seed, EPS, started,
         {"initialization": "exposure-residual features + KL-NMF",
          "n_initialization_features": feature_count,
-         "initialization_nmf_iterations": int(nmf.n_iter_)},
+         "initialization_nmf_iterations": int(nmf.n_iter_)}, solver_config,
     )
 
     started = time.perf_counter()
@@ -117,6 +117,6 @@ def fit_initializations(counts, n_components, random_state=0):
         {"initialization": "log-CPM + PCA + fixed-K Louvain + Frobenius-NMF",
          "selected_feature_count": len(selected), "pca_components": n_pcs,
          "louvain_neighbors": neighbors,
-         "cluster_sizes": np.bincount(labels, minlength=k).tolist()},
+         "cluster_sizes": np.bincount(labels, minlength=k).tolist()}, solver_config,
     )
     return results

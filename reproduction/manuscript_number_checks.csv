@@ -1,0 +1,90 @@
+claim,manuscript_value,decimal_places,archived_recomputed,rerun,rerun_minus_archived,archived_rounds_to_manuscript,evidence
+RNA equal-dataset mean PCC,0.7656,4,0.7655538316796913,0.7657229615577628,0.0001691298780714945,True,reports/rna_metrics.csv
+RNA equal-dataset mean CCC,0.6919,4,0.691919780745395,0.6920727141143744,0.00015293336897947984,True,reports/rna_metrics.csv
+RNA equal-dataset mean RMSE,0.1349,4,0.13487061452021962,0.13488404963400105,1.3435113781434804e-05,True,reports/rna_metrics.csv
+RNA equal-dataset mean TVD,0.3093,4,0.3092527423332606,0.30918705493725235,-6.568739600826268e-05,True,reports/rna_metrics.csv
+RNA equal-dataset mean JSD_base2,0.1543,4,0.15425636615791433,0.15411947054764577,-0.0001368956102685559,True,reports/rna_metrics.csv
+RNA equal-dataset mean profile_PCC,0.8332,4,0.8331760520739679,0.8327184088694691,-0.00045764320449881435,True,reports/rna_metrics.csv
+RNA mean rank,1.714,3,1.7142857142857142,1.7142857142857142,0.0,True,reports/rna_rank_summary.csv
+RNA first-place comparisons,26.0,0,26.0,26.0,0.0,True,reports/rna_rank_summary.csv
+Cerebellum displayed seed 1 RMSE,0.0794,4,0.0793757033739963,0.0792401743106051,-0.0001355290633912043,True,reports/rna_metrics.csv
+Cerebellum displayed seed 1 PCC,0.9498,4,0.9497624244801732,0.9499915418359008,0.00022911735572761494,True,reports/rna_metrics.csv
+Cerebellum seed 1 minimum type PCC,0.888,4,0.8880303837968923,0.8893191532790358,0.0012887694821435147,True,reports/rna_type_metrics.csv
+Cerebellum seed 1 maximum type PCC,0.9859,4,0.98586612715855,0.9858429406459186,-2.3186512631445666e-05,True,reports/rna_type_metrics.csv
+RNA reference equal-dataset mean RMSE,0.0782,4,0.07817083268065324,0.07817083268065324,0.0,True,reports/reference_rna_metrics.csv
+RNA reference equal-dataset mean MAE,0.0441,4,0.04412689476121876,0.04412689476121876,0.0,True,reports/reference_rna_metrics.csv
+RNA reference equal-dataset mean PCC,0.7481,4,0.7480856370789715,0.7480856370789715,0.0,True,reports/reference_rna_metrics.csv
+RNA reference equal-dataset mean CCC,0.6508,4,0.6507680848640205,0.6507680848640205,0.0,True,reports/reference_rna_metrics.csv
+xenium_lymph_5k RMSE,0.0634,4,0.0634477955605631,0.0634477955605631,0.0,True,reports/reference_rna_metrics.csv
+merfish_liver_tms RMSE,0.1,4,0.1000368806726185,0.1000368806726185,0.0,True,reports/reference_rna_metrics.csv
+starmap_li2022_same_source RMSE,0.071,4,0.0710278218087781,0.0710278218087781,0.0,True,reports/reference_rna_metrics.csv
+starmap_li2022_same_source PCC,0.8871,4,0.8871324765630116,0.8871324765630116,0.0,True,reports/reference_rna_metrics.csv
+starmap_li2022_same_source CCC,0.8767,4,0.8766684441621478,0.8766684441621478,0.0,True,reports/reference_rna_metrics.csv
+STARmap independent free per-spot RMSE,0.1137,4,0.1137107743771156,0.1137521747053717,4.140032825609985e-05,True,reports/starmap_spot_summary.csv
+STARmap independent free per-spot MAE,0.0641,4,0.0640923186585287,0.0640865386185329,-5.780039995795239e-06,True,reports/starmap_spot_summary.csv
+STARmap independent free per-spot PCC,0.7185,4,0.7185401614490338,0.7181487130720982,-0.0003914483769356103,True,reports/starmap_spot_summary.csv
+STARmap independent free per-spot CCC,0.6257,4,0.6257108288211293,0.6252347766511542,-0.00047605216997503863,True,reports/starmap_spot_summary.csv
+STARmap independent reference per-spot RMSE,0.1324,4,0.1324454367708493,0.132445440955271,4.184421698028018e-09,True,reports/starmap_spot_summary.csv
+Initialization random_single RMSE,0.15705,5,0.1570458226781918,0.1570458226781918,0.0,True,reports/initialization_summary.csv
+Initialization random_best3 RMSE,0.15077,5,0.15076743212168,0.15076743212168,0.0,True,reports/initialization_summary.csv
+Initialization random_best4 RMSE,0.15217,5,0.1521695053410416,0.1521695053410416,0.0,True,reports/initialization_summary.csv
+Initialization consensus_refined RMSE,0.13711,5,0.1371133721448857,0.1371133721448857,0.0,True,reports/initialization_summary.csv
+Normal1 RNA_TV PCC,0.541,3,0.5405559809579596,0.5405552423291875,-7.386287721455886e-07,True,reports/histology_metrics.csv
+Normal1 RNA_TV CCC,0.48,3,0.4795217255336639,0.4795214790732988,-2.46460365116441e-07,True,reports/histology_metrics.csv
+Normal1 RNA_TV ARI,0.346,3,0.3460704069583428,0.3460704069583428,0.0,True,reports/histology_metrics.csv
+Normal1 RNA_TV boundary_F1,0.298,3,0.2983050847457627,0.2983050847457627,0.0,True,reports/histology_metrics.csv
+Normal1 RNA_HE_TV PCC,0.603,3,0.6031245962721379,0.6031245982779908,2.0058529281996584e-09,True,reports/histology_metrics.csv
+Normal1 RNA_HE_TV CCC,0.561,3,0.5612932027954144,0.561293176787281,-2.6008133424682e-08,True,reports/histology_metrics.csv
+Normal1 RNA_HE_TV ARI,0.477,3,0.477251584110112,0.477251584110112,0.0,True,reports/histology_metrics.csv
+Normal1 RNA_HE_TV boundary_F1,0.363,3,0.3633491311216429,0.3633491311216429,0.0,True,reports/histology_metrics.csv
+G2 RNA_TV region_PCC,0.448,3,0.4475535310195934,0.4475518497250449,-1.681294548472323e-06,True,reports/histology_metrics.csv
+G2 RNA_TV ARI,0.247,3,0.2471999391448553,0.2471999391448553,0.0,True,reports/histology_metrics.csv
+G2 RNA_TV boundary_F1,0.429,3,0.4285714285714285,0.4285714285714285,0.0,True,reports/histology_metrics.csv
+G2 RNA_HE_TV region_PCC,0.541,3,0.5412923943268529,0.5412909000116636,-1.4943151893653805e-06,True,reports/histology_metrics.csv
+G2 RNA_HE_TV ARI,0.382,3,0.3816002922656758,0.3816002922656758,0.0,True,reports/histology_metrics.csv
+G2 RNA_HE_TV boundary_F1,0.474,3,0.4744376278118609,0.4744376278118609,0.0,True,reports/histology_metrics.csv
+G2 RNA_HE_TV_coordinate region_PCC,0.536,3,0.5362602687601284,0.536258927925288,-1.3408348404908565e-06,True,reports/histology_metrics.csv
+G2 RNA_HE_TV_coordinate ARI,0.363,3,0.3628282907301993,0.3628282907301993,0.0,True,reports/histology_metrics.csv
+G2 RNA_HE_TV_coordinate boundary_F1,0.465,3,0.4647302904564315,0.4647302904564315,0.0,True,reports/histology_metrics.csv
+RCC heldout_PCC,0.699,4,0.6990036472016191,0.6891385314629677,-0.009865115738651453,True,reports/rcc_metrics.csv
+RCC heldout_CCC,0.6308,4,0.6308185364049277,0.6196953548496347,-0.011123181555293016,True,reports/rcc_metrics.csv
+RCC heldout_Spearman,0.5902,4,0.5901559883032194,0.5793689176954123,-0.010787070607807037,True,reports/rcc_metrics.csv
+RCC heldout_hotspot_Dice,0.5738,4,0.573754729516803,0.5695115530990964,-0.004243176417706551,True,reports/rcc_metrics.csv
+RCC full_component_ARI_mean,0.4116,4,0.4116410537545871,0.388454601850056,-0.023186451904531113,True,reports/rcc_metrics.csv
+RCC dominant_ARI,0.4784,4,0.4783928052912371,0.442971301276886,-0.035421504014351124,True,reports/rcc_metrics.csv
+Normal1 124 mixed spots RNA_TV PCC,0.443,3,0.4428677854489571,0.4428670159136181,-7.695353390069215e-07,True,reports/normal1_subset_metrics.csv
+Normal1 124 mixed spots RNA_TV RMSE,0.202,3,0.2017907770545174,0.2017908070929413,3.003842391491318e-08,True,reports/normal1_subset_metrics.csv
+Normal1 124 mixed spots RNA_HE_TV PCC,0.528,3,0.5278834950064233,0.5278834639718577,-3.103456558406492e-08,True,reports/normal1_subset_metrics.csv
+Normal1 124 mixed spots RNA_HE_TV RMSE,0.209,3,0.2091248386398748,0.2091248423085726,3.6686977900046713e-09,True,reports/normal1_subset_metrics.csv
+ATAC common spots gold_standard TV_calibrated PCC_macro,0.4081,4,0.4081403517499121,0.4082186702844456,7.831853453349469e-05,True,reports/atac_metrics.csv
+ATAC common spots gold_standard TV_calibrated CCC_macro,0.3676,4,0.36755340000741,0.3677535205595313,0.00020012055212131896,True,reports/atac_metrics.csv
+ATAC common spots gold_standard TV_calibrated RMSE_global,0.1868,4,0.1867999474877003,0.1868013434726035,1.395984903201919e-06,True,reports/atac_metrics.csv
+ATAC common spots gold_standard TV_calibrated TVD_mean,0.4766,4,0.4766373207437279,0.4760977876531174,-0.0005395330906105,True,reports/atac_metrics.csv
+ATAC common spots gold_standard TV_calibrated JS_distance_base2_mean,0.5627,4,0.5627162790462732,0.5620619265044251,-0.0006543525418480911,True,reports/atac_metrics.csv
+ATAC common spots silver_standard TV_calibrated PCC_macro,0.3104,4,0.3103764985063171,0.3103765075682994,9.061982275682112e-09,True,reports/atac_metrics.csv
+ATAC common spots silver_standard TV_calibrated CCC_macro,0.2709,4,0.27089339979635985,0.27089340545678936,5.660429513998366e-09,True,reports/atac_metrics.csv
+ATAC common spots silver_standard TV_calibrated RMSE_global,0.1215,4,0.1215109302748292,0.12151092722639631,-3.048432895003117e-09,True,reports/atac_metrics.csv
+ATAC common spots silver_standard TV_calibrated TVD_mean,0.4185,4,0.4185247963654861,0.4185247886826325,-7.68285363106358e-09,True,reports/atac_metrics.csv
+ATAC common spots silver_standard TV_calibrated JS_distance_base2_mean,0.4743,4,0.4743004152991329,0.4743004087242726,-6.574860322849929e-09,True,reports/atac_metrics.csv
+ATAC common spots gold_standard reference PCC_macro,0.8605,4,0.8605284108804254,0.8605284108804254,0.0,True,reports/atac_metrics.csv
+ATAC common spots gold_standard reference CCC_macro,0.8488,4,0.8487732259590981,0.8487732259590981,0.0,True,reports/atac_metrics.csv
+ATAC common spots gold_standard reference RMSE_global,0.084,4,0.0839667295077893,0.0839667295077893,0.0,True,reports/atac_metrics.csv
+ATAC common spots gold_standard reference TVD_mean,0.1838,4,0.1837987761144977,0.1837987761144977,0.0,True,reports/atac_metrics.csv
+ATAC common spots gold_standard reference JS_distance_base2_mean,0.2292,4,0.2291539795408336,0.2291539795408337,8.326672684688674e-17,True,reports/atac_metrics.csv
+ATAC common spots silver_standard reference PCC_macro,0.5528,4,0.5527583015176778,0.5527583015176778,0.0,True,reports/atac_metrics.csv
+ATAC common spots silver_standard reference CCC_macro,0.5423,4,0.5423129102265505,0.5423129102265505,0.0,True,reports/atac_metrics.csv
+ATAC common spots silver_standard reference RMSE_global,0.0801,4,0.08006290114762311,0.08006290114762311,0.0,True,reports/atac_metrics.csv
+ATAC common spots silver_standard reference TVD_mean,0.2587,4,0.2587261443208939,0.2587261443208939,0.0,True,reports/atac_metrics.csv
+ATAC common spots silver_standard reference JS_distance_base2_mean,0.3176,4,0.3175509440957084,0.3175509440957084,0.0,True,reports/atac_metrics.csv
+ATAC published all-spot support gold_standard RMSE_global,0.0835,4,0.0834873056625174,0.0834873056625174,0.0,True,reports/atac_all_spot_reference.csv
+ATAC published all-spot support gold_standard JS_distance_base2_mean,0.2278,4,0.2278262981203804,0.2278262981203804,0.0,True,reports/atac_all_spot_reference.csv
+ATAC published all-spot support silver_standard RMSE_global,0.0803,4,0.08027050918332243,0.08027050918332243,0.0,True,reports/atac_all_spot_reference.csv
+ATAC published all-spot support silver_standard JS_distance_base2_mean,0.3177,4,0.3176592262506555,0.3176592262506555,0.0,True,reports/atac_all_spot_reference.csv
+Tonsil protein mean_P_GC,0.155,3,0.1553222497008324,0.1553272093888814,4.959688049005484e-06,True,reports/tonsil_gc_metrics.csv
+Tonsil joint mean_P_GC,0.321,3,0.3209285027886482,0.3209285744960707,7.170742249984485e-08,True,reports/tonsil_gc_metrics.csv
+Tonsil protein GC_to_Other,6.7,2,6.6987232341316725,6.696181528463055,-0.0025417056686176664,True,reports/tonsil_gc_metrics.csv
+Tonsil joint GC_to_Other,8.84,2,8.840123660488498,8.840116227040943,-7.433447555271755e-06,True,reports/tonsil_gc_metrics.csv
+Tonsil C7 CD3E RNA observed fold,3.38,2,3.379245230980682,3.379245230980686,3.9968028886505635e-15,True,reports/tonsil_observed_enrichment.csv
+Tonsil C7 CD3E protein observed fold,2.9,2,2.897380445445789,2.897380445445789,0.0,True,reports/tonsil_observed_enrichment.csv
+Tonsil C10 PAX5 RNA observed fold,3.07,2,3.071247172530656,3.0712471725306667,1.0658141036401503e-14,True,reports/tonsil_observed_enrichment.csv
+Tonsil C10 PAX5 protein observed fold,2.23,2,2.226235770005688,2.226235770005688,0.0,True,reports/tonsil_observed_enrichment.csv

@@ -1,0 +1,20 @@
+{
+  "spots": 102544,
+  "genes": 480,
+  "groups": 7,
+  "subjects": 5,
+  "objective": 0.07976306282845816,
+  "archived_objective": 0.07976306282845883,
+  "objective_difference": -6.661338147750939e-16,
+  "terms": {
+    "KL": 0.07396309598797668,
+    "subject_penalty": 0.0016432110487258924,
+    "condition_penalty": 0.0004024522879670301,
+    "TV": 0.07508607007577105
+  },
+  "profile_update_max_difference": 0.0,
+  "auxiliary_before": 4.1935821230208425,
+  "auxiliary_after": 4.193582123020839,
+  "shared_profile_max_difference": 1.1102230246251565e-16,
+  "full_retraining": false
+}

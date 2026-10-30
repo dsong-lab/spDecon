@@ -1,0 +1,15 @@
+project = 'spDecon'
+author = 'Su Xu'
+copyright = '2026, Su Xu'
+release = '0.1.0'
+extensions = ['myst_nb', 'sphinx.ext.mathjax']
+html_theme = 'sphinx_rtd_theme'
+html_theme_options = {'collapse_navigation':False,'navigation_depth':3,'sticky_navigation':False}
+html_static_path = ['_static']
+html_css_files = ['custom.css']
+html_baseurl = 'https://dsong-lab.github.io/spDecon/'
+html_context = {'display_github':True,'github_user':'dsong-lab','github_repo':'spDecon','github_version':'main','conf_py_path':'/docs/source/'}
+nb_execution_mode = 'off'
+nb_output_stderr = 'remove'
+myst_enable_extensions = ['dollarmath', 'amsmath', 'colon_fence']
+exclude_patterns = ['**/.ipynb_checkpoints']
