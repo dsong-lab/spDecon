@@ -7,8 +7,7 @@ Its core model, `Y ≈ diag(exposure) @ P @ B`, combines Poisson/KL reconstructi
 with spatial regularization.
 
 [Documentation](https://dsong-lab.github.io/spDecon/) ·
-[Tutorials](https://dsong-lab.github.io/spDecon/tutorial.html) ·
-[Example data](https://github.com/dsong-lab/spDecon/releases/tag/tutorial-data-v0.1.0)
+[Tutorials](https://dsong-lab.github.io/spDecon/tutorial.html)
 
 ## Installation
 
@@ -64,19 +63,3 @@ Open it from the cloned repository; the data bundle downloads automatically.
 `RUN_FIT=False` loads saved fits; set it to `True` to train the model.
 `VERBOSE=True` shows fitting progress. The CRC example uses the archived
 480-gene, 12-section fit by default.
-
-## Public data sources
-
-Original datasets are linked below. The [example-data release](https://github.com/dsong-lab/spDecon/releases/tag/tutorial-data-v0.1.0)
-provides prepared inputs and saved spDecon fits for the tutorials.
-
-| Example | Public sources |
-|---|---|
-| Cerebellum | [Slide-seq SCP354](https://singlecell.broadinstitute.org/single_cell/study/SCP354/slide-seq-study); [RETROFIT data and scripts](https://github.com/qunhualilab/retrofit-scripts), [v1.0.0 code archive](https://zenodo.org/records/19241634) |
-| Xenium lymph node | [Xenium Prime](https://www.10xgenomics.com/datasets/preview-data-xenium-prime-gene-expression); [Flex 320k scFFPE reference](https://www.10xgenomics.com/datasets/320k_scFFPE_16-plex_GEM-X_FLEX), library LNReactive_BC9-10 |
-| HER2ST G2 | [HER2ST counts, H&E images and annotations](https://zenodo.org/records/4751624) |
-| RCC | [Xenium Protein Human Renal Carcinoma](https://www.10xgenomics.com/datasets/xenium-protein-ffpe-human-renal-carcinoma) |
-| CRC | [GEO GSE294385](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE294385); [pathology annotations](https://github.com/yliuup/CRC_micromets_ST) |
-| Tonsil | [Visium CytAssist Human Tonsil Gene and Protein Expression](https://www.10xgenomics.com/datasets/visium-cytassist-gene-and-protein-expression-library-of-human-tonsil-with-add-on-antibodies-h-e-6-5-mm-ffpe-2-standard) |
-
-Source datasets and encoder weights retain their original attribution and terms.
