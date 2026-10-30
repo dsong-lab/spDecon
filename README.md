@@ -10,11 +10,6 @@ with spatial regularization.
 [Tutorials](https://dsong-lab.github.io/spDecon/tutorial.html) ·
 [Example data](https://github.com/dsong-lab/spDecon/releases/tag/tutorial-data-v0.1.0)
 
-![G2 histology-guided deconvolution](docs/source/_static/figures/g2_regions.png)
-
-HER2ST G2: H&E, pathology, RNA and RNA + H&E, from left to right;
-the lower row shows the outlined region at higher magnification.
-
 ## Installation
 
 Use Python 3.10. Reference-free training requires an NVIDIA GPU; the supplied
