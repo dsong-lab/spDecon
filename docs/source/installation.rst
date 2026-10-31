@@ -28,7 +28,8 @@ with the last two commands above.
 Open ``tutorials/*.ipynb`` in your preferred Jupyter interface or VS Code and
 select this environment's Python kernel. The notebooks locate the repository
 root automatically. Their first data-loading cell downloads the complete example
-bundle from the versioned GitHub release if it is absent.
+bundle from GitHub if it is absent. To refresh an earlier G2 download, set
+``REFRESH_DATA=True`` in that notebook's loading cell once.
 
 **Saved outputs:** the default ``RUN_FIT=False`` loads complete previously fitted
 results and recomputes the tutorial metrics and plots. Change it to ``True`` to

@@ -69,5 +69,8 @@ and [function parameters](https://dsong-lab.github.io/spDecon/api.html).
 
 The histology tutorial uses the same HIPT/UNI morphology matrix for coefficient
 calibration, reconstruction and edge weighting. Its paired RNA-only control
-shares the unrefined consensus and calibrated spatial coefficient. Tutorial
-data version `tutorial-data-v0.1.1` contains the updated G2 fits and diagnostics.
+shares the unrefined consensus and calibrated spatial coefficient. It includes
+code for extracting HIPT/UNI embeddings, building spot-level morphology features,
+and passing them to spDecon. See the
+[H&E workflow](https://dsong-lab.github.io/spDecon/api.html#histology-guided-fitting)
+for the same steps with your own image and AnnData object.

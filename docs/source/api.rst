@@ -141,11 +141,97 @@ per-cell yields and renormalizes each spot. Store the two outputs separately:
 Histology-guided fitting
 ------------------------
 
+The workflow is registered H&E → HIPT and UNI embeddings → spot-level morphology
+matrix ``Q`` → joint deconvolution. ``extract_histology`` runs both encoders and
+builds ``Q``; ``fit_histology`` uses ``Q`` with raw RNA counts and coordinates.
+
+Prepare the encoders
+~~~~~~~~~~~~~~~~~~~~
+
+From the cloned spDecon repository, install the optional image dependencies and
+obtain the encoder source:
+
+.. code-block:: bash
+
+   python -m pip install -r requirements-histology.lock.txt
+   git clone https://github.com/dsong-lab/spEnhance.git external/spEnhance
+   hf auth login
+
+Download ``vit256_small_dino.pth`` and ``vit4k_xs_dino.pth`` from the
+`official HIPT repository <https://github.com/mahmoodlab/HIPT>`_ into
+``external/spEnhance/checkpoints/``. Request access to
+`UNI <https://huggingface.co/MahmoodLab/UNI>`_ with the account used for
+``hf auth login``. The adapter uses these checkpoints and the Hugging Face cache;
+it does not require a token in the notebook.
+
+Extract embeddings and build Q
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For a single section, prepare an AnnData file with raw counts in ``X`` and spatial
+graph coordinates in ``obsm["spatial"]``. A separate ``image_spots.csv`` has spot
+IDs in its first column and ``x,y`` centers registered to the original RGB H&E
+image. Image centers are in original pixels, with x to the right and y downward.
+``microns_per_pixel.txt`` and ``radius_pixels.txt`` each contain one number: the
+original image resolution and the capture radius in that image's pixels.
+
+.. code-block:: python
+
+   from pathlib import Path
+   import anndata as ad
+   import pandas as pd
+   from spDecon.image_features import extract_histology
+
+   adata = ad.read_h5ad("sample_counts.h5ad")
+   image_spots = pd.read_csv("image_spots.csv", index_col=0).loc[adata.obs_names]
+   q_frame = extract_histology(
+       "he.jpg", image_spots,
+       microns_per_pixel=float(Path("microns_per_pixel.txt").read_text()),
+       radius_pixels=float(Path("radius_pixels.txt").read_text()),
+       encoder_source="external/spEnhance",
+       output="outputs/sample_features", device="cuda")
+   adata.obsm["morphology"] = q_frame.loc[adata.obs_names].to_numpy()
+   adata.obs["section_id"] = "sample"
+
+Use a new output directory for extraction. The adapter rescales the image and
+capture geometry to 0.5 µm/pixel, then writes the HIPT and UNI embedding maps.
+For each encoder, it retains 99% of variance by PCA, fits a 16-word dictionary,
+and pools word frequencies over each spot's capture footprint. Concatenating
+the two frequency blocks with equal weight produces nonnegative ``Q`` with
+shape ``N × 32`` and row sums of one. The deconvolution input is this frequency
+matrix; the intermediate embeddings and PCA scores can contain signed values.
+No RNA counts or pathology labels are used to construct ``Q``.
+
+The output directory contains:
+
+* ``embeddings-hist-vit.pickle`` and ``embeddings-hist-uni.pickle``: encoder maps;
+* ``hipt_pca99.npy``, ``uni_pca99.npy`` and the corresponding
+  ``*_pca_transform.npz`` and ``*_dictionary.npz`` files;
+* ``morphology.npz`` (arrays ``Q`` and ``spots``), ``morphology.csv``, and geometry
+  and extraction records in ``provenance.json``.
+
+To reuse the extracted features in another session, load the saved matrix and
+align its rows by spot ID before continuing:
+
+.. code-block:: python
+
+   import numpy as np
+
+   with np.load("outputs/sample_features/morphology.npz") as features:
+       q_frame = pd.DataFrame(features["Q"], index=features["spots"])
+   adata.obsm["morphology"] = q_frame.loc[adata.obs_names].to_numpy()
+
+Fit and save the paired models
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Continue with the same AnnData object. ``K=6`` is the G2 example's component
+count; choose the component count for your own analysis.
+
 .. code-block:: python
 
    from spDecon.histology import fit_histology
    from spDecon.consensus import build_consensus
 
+   K = 6
    counts = adata.to_df()
    initial = build_consensus(counts.to_numpy(), K, random_state=0)
    shared = dict(
@@ -160,6 +246,16 @@ Histology-guided fitting
    rna_only = fit_histology(
        counts, None, adata.obsm["spatial"], K,
        spatial_weight=result.diagnostics["spatial_weight"], **shared)
+   adata.obsm["spDecon_HE"] = result.proportions
+   adata.obsm["spDecon_RNA"] = rna_only.proportions
+   adata.varm["spDecon_HE_profiles"] = result.profiles.T
+   adata.write_h5ad("sample_spdecon.h5ad")
+
+Both arms start from the same unrefined RNA consensus. The H&E arm calibrates
+its coefficients with the supplied ``Q``; the RNA-only arm reuses its spatial
+coefficient. Replacing the extracted features therefore also recalibrates the
+image term. Inspect ``result.diagnostics`` and ``rna_only.diagnostics`` for the
+fitting status and final objective.
 
 ``morphology``
    The ``N × 32`` HIPT/UNI frequency matrix, with two blocks each summing to 0.5.
@@ -184,17 +280,8 @@ Histology-guided fitting
 The result contains ``N × K`` proportions, ``K × G`` RNA profiles and
 ``result.extra["morphology_profiles"]`` of shape ``K × 32``.
 
-To obtain morphology features, call
-``spDecon.image_features.extract_histology(image, spots, ...)``:
-
-* ``image``: path to the registered RGB H&E image.
-* ``spots``: spot-indexed DataFrame with ``x,y`` centers in original image pixels.
-* ``microns_per_pixel``, ``radius_pixels``: image resolution and capture radius.
-* ``encoder_source``: spEnhance checkout containing the HIPT code and checkpoints;
-  UNI access and weights are configured separately in the G2 notebook.
-* ``output``: new directory for extracted features; ``device="cuda"`` selects GPU
-  extraction. The return value is a spot-indexed 32-column DataFrame, which can
-  be aligned and assigned to ``adata.obsm["morphology"]``.
+The `G2 notebook <https://github.com/dsong-lab/spDecon/blob/main/tutorials/03_histology.ipynb>`_
+provides the registered image, inputs and executed plots for this workflow.
 
 Joint multi-sample fitting
 --------------------------
