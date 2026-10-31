@@ -144,12 +144,22 @@ Histology-guided fitting
 .. code-block:: python
 
    from spDecon.histology import fit_histology
+   from spDecon.consensus import build_consensus
 
+   counts = adata.to_df()
+   initial = build_consensus(counts.to_numpy(), K, random_state=0)
+   shared = dict(
+       initial_proportions=initial.consensus_proportions,
+       initial_profiles=initial.consensus_profiles,
+       sections=adata.obs["section_id"].to_numpy(), random_state=0,
+       device="cuda", max_iter=20000)
    result = fit_histology(
-       adata.to_df(), adata.obsm["morphology"], adata.obsm["spatial"], K,
-       sections=adata.obs["section_id"].to_numpy(),
+       counts, adata.obsm["morphology"], adata.obsm["spatial"], K,
        image_weight=None, spatial_weight=None,
-       random_state=0, device="cuda", max_iter=20000)
+       **shared)
+   rna_only = fit_histology(
+       counts, None, adata.obsm["spatial"], K,
+       spatial_weight=result.diagnostics["spatial_weight"], **shared)
 
 ``morphology``
    The ``N × 32`` HIPT/UNI frequency matrix, with two blocks each summing to 0.5.
@@ -157,8 +167,12 @@ Histology-guided fitting
    to zero.
 ``image_weight``, ``spatial_weight``
    Coefficients for morphology reconstruction and spatial TV. ``None`` calibrates
-   the coefficient from the initial fit. The G2 notebook supplies its recorded
-   coefficients for the paired comparison.
+   the coefficient near the unrefined RNA consensus, at ``0.9 P0 + 0.1/K``.
+   Calibration uses the same morphology matrix as fitting, exposure-weighted
+   image reconstruction and exposure-weighted coordinate TV, with multipliers
+   0.30 and 0.05. The two arms share the calibrated spatial coefficient.
+   The morphology gate is computed from that same matrix and applied only
+   when fitting the H&E arm. Recalibrate when the input features change.
 ``image_gate``
    Defaults to ``True``: image differences reduce smoothing across edges.
    ``False`` keeps coordinate-based smoothing without the image gate.

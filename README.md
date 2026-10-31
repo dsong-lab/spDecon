@@ -66,3 +66,8 @@ and [function parameters](https://dsong-lab.github.io/spDecon/api.html).
 `RUN_FIT=False` loads saved fits; set it to `True` to train the model.
 `VERBOSE=True` shows fitting progress. The CRC example uses the archived
 480-gene, 12-section fit by default.
+
+The histology tutorial uses the same HIPT/UNI morphology matrix for coefficient
+calibration, reconstruction and edge weighting. Its paired RNA-only control
+shares the unrefined consensus and calibrated spatial coefficient. Tutorial
+data version `tutorial-data-v0.1.1` contains the updated G2 fits and diagnostics.

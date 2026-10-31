@@ -7,6 +7,7 @@ docs/build/
 docs/source/notebooks/
 tutorial_data/*/
 tutorial_data/*.tar.gz
+tutorial_data/.bundle-version
 *.egg-info/
 build/
 dist/

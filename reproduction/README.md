@@ -1,6 +1,26 @@
 # Complete-data reproduction record
 
-Prepared 30 October 2026.
+Baseline campaign: 30 October 2026. Histology tutorial updated 31 October 2026.
+
+## Current histology protocol
+
+The G2 tutorial calibrates and fits with the same HIPT/UNI morphology matrix.
+Both calibration losses use the fitting exposure weights. Spatial calibration
+uses coordinate TV before morphology gating, and the RNA-only control reuses
+the same consensus and spatial coefficient. Replacing the morphology features
+therefore requires recalibration.
+
+`histology_uniform_metrics.csv` contains the updated manuscript scores for
+MOB, G2 and H1. `tutorial_metrics.csv` and `training_summary.csv` contain the
+current G2 notebook readouts and saved-fit diagnostics. The G2 data bundle
+records the coefficients, input hashes and display window in `calibration.json`
+and `protocol.json`. These updates supersede the histology values in the
+30 October campaign tables below; those tables retain their original record.
+
+The calibration and cache checks can be run with
+`python tests/check_histology.py` and `python tests/check_tutorial_data.py`.
+
+## Baseline campaign
 
 The preceding reproduction campaign completed 262 planned final fits, all with
 converged final solutions, and independently recalculated their objective values.
@@ -46,8 +66,8 @@ Pinned dependencies, explicit seeds and optional deterministic kernels support
 repeatable new analyses. Cross-device or cross-version bitwise equality is not
 assumed. No manuscript source files or raw encoder weights are distributed here.
 
-The revised G2 figures retain the same 402-spot scores and the manuscript's fixed
-illustrative zoom. The Tonsil maps use the Visium hexagonal coordinate transform,
+The current G2 figures use the updated paired fits on the same 402-spot support
+and a 40-spot enlargement. The Tonsil maps use the Visium hexagonal coordinate transform,
 verified against all 4,908 original spot records. The eleven displayed components
 come only from the joint fit, with labelled per-component 99th-percentile color
-limits. These display changes leave the complete fitted weights unchanged.
+limits. These Tonsil display changes leave its fitted weights unchanged.

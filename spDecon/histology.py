@@ -86,10 +86,13 @@ def fit_histology(counts, morphology, coordinates, n_components, *, sections=Non
                   random_state=1, device='auto', verbose=True, **optimizer):
     """Fit from the unrefined RNA consensus and fixed 32-column HIPT/UNI Q.
 
-    The image command produces Q from the registered H&E image. For new data,
-    omitted coefficients use weighted gradient calibration (alpha .30/.05).
+    The image command produces Q from the registered H&E image. Omitted
+    coefficients use the same Q for weighted gradient calibration (alpha
+    .30/.05) and fitting. Spatial calibration uses the coordinate graph,
+    before applying the morphology gate. Paired controls should reuse the
+    same initial factors and the returned spatial_weight.
     Set image_gate=False for the image-reconstruction, coordinate-TV ablation.
-    Explicit coefficients reproduce dataset-specific historical calibrations.
+    Explicit coefficients override calibration for the supplied parameter.
     """
     y = validate_counts(counts)
     if isinstance(counts, pd.DataFrame) and isinstance(morphology, pd.DataFrame):

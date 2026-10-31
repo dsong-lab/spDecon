@@ -27,7 +27,7 @@ See :doc:`api` for function parameters and return values.
      - :doc:`Xenium lymph node: fixed signatures and cell fractions <notebooks/02_reference_based>`
      - `02_reference_based.ipynb <https://github.com/dsong-lab/spDecon/blob/main/tutorials/02_reference_based.ipynb>`_
    * - Histology
-     - :doc:`G2: HIPT/UNI extraction and paired improvement <notebooks/03_histology>`
+     - :doc:`G2: HIPT/UNI extraction and paired deconvolution <notebooks/03_histology>`
      - `03_histology.ipynb <https://github.com/dsong-lab/spDecon/blob/main/tutorials/03_histology.ipynb>`_
    * - Cross-modality
      - :doc:`RCC: independent RNA/protein structures <notebooks/04_cross_modality>`
