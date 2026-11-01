@@ -148,18 +148,18 @@ builds ``Q``; ``fit_histology`` uses ``Q`` with raw RNA counts and coordinates.
 Prepare the encoders
 ~~~~~~~~~~~~~~~~~~~~
 
-From the cloned spDecon repository, install the optional image dependencies and
-obtain the encoder source:
+The feature-extraction code is included in spDecon. From the repository root,
+install the optional image dependencies and prepare a directory for HIPT weights:
 
 .. code-block:: bash
 
    python -m pip install -r requirements-histology.lock.txt
-   git clone https://github.com/dsong-lab/spEnhance.git external/spEnhance
+   mkdir -p checkpoints/hipt
    hf auth login
 
 Download ``vit256_small_dino.pth`` and ``vit4k_xs_dino.pth`` from the
 `official HIPT repository <https://github.com/mahmoodlab/HIPT>`_ into
-``external/spEnhance/checkpoints/``. Request access to
+``checkpoints/hipt/``. Request access to
 `UNI <https://huggingface.co/MahmoodLab/UNI>`_ with the account used for
 ``hf auth login``. The adapter uses these checkpoints and the Hugging Face cache;
 it does not require a token in the notebook.
@@ -187,7 +187,7 @@ original image resolution and the capture radius in that image's pixels.
        "he.jpg", image_spots,
        microns_per_pixel=float(Path("microns_per_pixel.txt").read_text()),
        radius_pixels=float(Path("radius_pixels.txt").read_text()),
-       encoder_source="external/spEnhance",
+       checkpoint_dir="checkpoints/hipt",
        output="outputs/sample_features", device="cuda")
    adata.obsm["morphology"] = q_frame.loc[adata.obs_names].to_numpy()
    adata.obs["section_id"] = "sample"

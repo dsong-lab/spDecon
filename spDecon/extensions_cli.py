@@ -89,7 +89,7 @@ def main(argv=None):
             ap.add_argument('--image-spots', type=Path, required=True, help='Spot ID, x, y in raw image pixels')
             ap.add_argument('--microns-per-pixel', type=float, required=True)
             ap.add_argument('--radius-pixels', type=float, required=True)
-            ap.add_argument('--encoder-source', type=Path, required=True)
+            ap.add_argument('--checkpoint-dir', type=Path, required=True, help='Directory containing the two pretrained HIPT .pth files')
             ap.add_argument('--image-weight', type=float)
             ap.add_argument('--offline', action='store_true')
         if mode == 'multisample':
@@ -159,7 +159,7 @@ def main(argv=None):
             xy = aligned(read_frame(args.coordinates), data.index, 'Coordinates')
             image_spots = aligned(read_frame(args.image_spots), data.index, 'Image coordinates')
             q = extract_histology(args.image, image_spots, microns_per_pixel=args.microns_per_pixel,
-                                  radius_pixels=args.radius_pixels, encoder_source=args.encoder_source,
+                                  radius_pixels=args.radius_pixels, checkpoint_dir=args.checkpoint_dir,
                                   output=args.output/'image_features', device='cuda', offline=args.offline)
             result = fit_histology(data, q, xy[['x', 'y']].to_numpy(), args.k,
                                    image_weight=args.image_weight,

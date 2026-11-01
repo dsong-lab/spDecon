@@ -14,3 +14,4 @@ dist/
 .docs-venv/
 .cache/
 external/
+checkpoints/

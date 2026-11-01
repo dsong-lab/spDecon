@@ -18,3 +18,4 @@ include = ["spDecon*"]
 
 [tool.setuptools.package-data]
 "spDecon._atac_reference" = ["README.txt"]
+"spDecon._image_encoders" = ["LICENSE-Apache-2.0.txt"]

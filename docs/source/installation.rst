@@ -35,16 +35,17 @@ bundle from GitHub if it is absent. To refresh an earlier G2 download, set
 results and recomputes the tutorial metrics and plots. Change it to ``True`` to
 train the model. Set ``VERBOSE=True`` for fitting progress and convergence status.
 
-Optional image encoders
------------------------
+Optional H&E feature extraction
+-------------------------------
 
 .. code-block:: bash
 
    python -m pip install -r requirements-histology.lock.txt
-   git clone https://github.com/dsong-lab/spEnhance.git external/spEnhance
 
-Follow the G2 notebook to obtain HIPT checkpoints and request UNI access, then
-call ``spDecon.image_features.extract_histology``. The data bundle already includes
+HIPT and UNI feature-extraction code is included in spDecon. Follow the G2
+notebook to place the two HIPT checkpoints in ``checkpoints/hipt/`` and request
+UNI access, then call ``spDecon.image_features.extract_histology`` with
+``checkpoint_dir="checkpoints/hipt"``. The data bundle already includes
 the registered G2 H&E image, capture centers and complete derived morphology
 features. Encoder weights are downloaded separately under their original terms.
 

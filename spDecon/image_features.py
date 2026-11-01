@@ -1,8 +1,7 @@
 """Registered H&E -> HIPT + UNI -> PCA99 -> two 16-word spot histograms.
 
-The frozen encoders and their extraction arithmetic are supplied by the
-spEnhance source dependency. This adapter performs the spDecon PCA/dictionary
-steps and records the source and geometry used. Pretrained weights are external.
+Image preprocessing and frozen encoder implementations are included in spDecon.
+Pretrained HIPT weights are loaded from checkpoint_dir; UNI uses Hugging Face.
 """
 import argparse
 import json
@@ -127,23 +126,20 @@ def build_morphology(directory, spots, radius):
 
 
 def extract_histology(image, spots, *, microns_per_pixel, radius_pixels,
-                      encoder_source, output, device='cuda', offline=False):
+                      checkpoint_dir, output, device='cuda', offline=False):
     """Extract the paper's two-encoder features from an image and pixel centers.
 
-    `encoder_source` is a spEnhance checkout with pretrained HIPT checkpoints;
+    `checkpoint_dir` contains vit256_small_dino.pth and vit4k_xs_dino.pth;
     UNI weights are resolved through the user's Hugging Face cache/access.
     `spots` is a spot-indexed DataFrame with x/y in original image pixels.
     """
     from PIL import Image
-    source, image, output = Path(encoder_source).resolve(), Path(image).resolve(), Path(output).resolve()
-    needed = ['rescale.py', 'preprocess.py', 'extract_features_vit.py', 'histological_feature_map.py',
-              'RGB_feature_map.py', 'pos_feature_map.py', 'hipt_4k.py', 'hipt_model_utils.py',
-              'vision_transformer.py', 'vision_transformer4k.py', 'utils.py', 'image.py',
-              'reduce_dim.py', 'connected_components.py', 'checkpoints/vit256_small_dino.pth',
-              'checkpoints/vit4k_xs_dino.pth']
-    for name in needed:
-        if not (source/name).is_file():
-            raise FileNotFoundError(f'Missing encoder dependency: {source/name}')
+    source = Path(__file__).resolve().with_name('_image_encoders')
+    checkpoints = Path(checkpoint_dir).resolve()
+    image, output = Path(image).resolve(), Path(output).resolve()
+    for name in ('vit256_small_dino.pth', 'vit4k_xs_dino.pth'):
+        if not (checkpoints/name).is_file():
+            raise FileNotFoundError(f'Missing HIPT checkpoint: {checkpoints/name}')
     if not image.is_file() or image.suffix.lower() not in ('.jpg', '.jpeg', '.png', '.tif', '.tiff'):
         raise ValueError('Provide an existing RGB H&E JPEG, PNG or TIFF image')
     if not isinstance(spots, pd.DataFrame) or not spots.index.is_unique or not {'x', 'y'}.issubset(spots.columns):
@@ -167,7 +163,8 @@ def extract_histology(image, spots, *, microns_per_pixel, radius_pixels,
     (output/'pixel-size.txt').write_text('0.5')
     (output/'radius-raw.txt').write_text(str(radius_pixels))
     spots[['x', 'y']].to_csv(output/'locs-raw.csv')
-    env = dict(os.environ, PYTHONDONTWRITEBYTECODE='1', OMP_NUM_THREADS='1', OPENBLAS_NUM_THREADS='1', MKL_NUM_THREADS='1')
+    env = dict(os.environ, PYTHONDONTWRITEBYTECODE='1', OMP_NUM_THREADS='1', OPENBLAS_NUM_THREADS='1', MKL_NUM_THREADS='1',
+               SPDECON_HIPT_CHECKPOINT_DIR=str(checkpoints))
     if offline:
         env['HF_HUB_OFFLINE'] = '1'
     def run(script, *args):
@@ -191,6 +188,7 @@ def extract_histology(image, spots, *, microns_per_pixel, radius_pixels,
                     original_microns_per_pixel=microns_per_pixel, target_microns_per_pixel=.5,
                     original_radius_pixels=radius_pixels, scaled_radius_pixels=radius,
                     device=device, n_spots=len(spots), encoders=['HIPT', 'UNI'],
+                    hipt_checkpoint_dir=str(checkpoints),
                     uni_model='hf-hub:MahmoodLab/uni',
                     workflow='16-shift HIPT + UNI; covariance PCA99 per encoder; 16-word dictionaries; capture frequencies',
                     molecular_data_used=False)
@@ -205,7 +203,7 @@ def main():
         source, output, device = sys.argv[2:]
         sys.path.insert(0, source)
         load = torch.load
-        checkpoints = {(Path(source)/'checkpoints'/name).resolve() for name in
+        checkpoints = {(Path(os.environ['SPDECON_HIPT_CHECKPOINT_DIR'])/name).resolve() for name in
                        ('vit256_small_dino.pth', 'vit4k_xs_dino.pth')}
         def load_hipt(path, *args, **kwargs):
             # Official HIPT checkpoint dictionaries predate weights_only loading.
@@ -221,17 +219,17 @@ def main():
         source, output, device = sys.argv[2:]
         sys.path.insert(0, source)
         import torch
-        import histological_feature_map as official
+        import histological_feature_map as uni
         from RGB_feature_map import main as rgb
         from pos_feature_map import main as pos
         torch.set_num_threads(1)
         torch.manual_seed(0)
         np.random.seed(0)
         # Use existing Hugging Face credentials/cache; never pass or print tokens.
-        official.login = lambda *_args, **_kwargs: None
+        uni.login = lambda *_args, **_kwargs: None
         if device != 'cuda' and torch.cuda.is_available():
-            raise ValueError('The original UNI adapter selects CUDA when available; use device=cuda')
-        hist = official.main(output+'/', None)
+            raise ValueError('The UNI encoder selects CUDA when available; use device=cuda')
+        hist = uni.main(output+'/', None)
         with (Path(output)/'embeddings-hist-uni.pickle').open('wb') as stream:
             pickle.dump(dict(his=hist, rgb=rgb(output+'/'), pos=pos(output+'/', hist)), stream)
         return
@@ -240,7 +238,7 @@ def main():
     parser.add_argument('--spots', required=True, help='CSV: spot ID, x, y in original image pixels')
     parser.add_argument('--microns-per-pixel', required=True, type=float)
     parser.add_argument('--radius-pixels', required=True, type=float)
-    parser.add_argument('--encoder-source', required=True)
+    parser.add_argument('--checkpoint-dir', required=True, help='Directory containing the two pretrained HIPT .pth files')
     parser.add_argument('--output', required=True)
     parser.add_argument('--device', default='cuda')
     parser.add_argument('--offline', action='store_true')
