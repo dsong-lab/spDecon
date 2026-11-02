@@ -12,6 +12,13 @@ Spatial molecular deconvolution across RNA, histology, samples and modalities.
    and profiles. Spatial regularization and task-specific terms extend the same
    model to histology, multiple samples and paired assays.
 
+.. figure:: _static/figures/Figure_1_decon.png
+   :alt: Overview of spDecon: reference-free, reference-based, histology-guided, multi-sample and multi-omics deconvolution.
+   :width: 100%
+   :target: _static/figures/Figure_1_decon.png
+
+   Overview of spDecon. Click the figure to view it at full resolution.
+
 Start with :doc:`installation`, then choose a workflow in :doc:`tutorial`.
 Every tutorial includes data, model settings, executable Python steps and saved
 figures from complete fitted results.
@@ -44,6 +51,8 @@ figures from complete fitted results.
 
 Source code and notebooks:
 `dsong-lab/spDecon <https://github.com/dsong-lab/spDecon>`_.
+spDecon is released under the
+`MIT License <https://github.com/dsong-lab/spDecon/blob/main/LICENSE>`_.
 
 .. toctree::
    :maxdepth: 2

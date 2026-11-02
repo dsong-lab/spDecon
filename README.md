@@ -9,6 +9,8 @@ with spatial regularization.
 [Documentation](https://dsong-lab.github.io/spDecon/) ·
 [Tutorials](https://dsong-lab.github.io/spDecon/tutorial.html)
 
+[![Overview of spDecon: reference-free, reference-based, histology-guided, multi-sample and multi-omics deconvolution.](docs/source/_static/figures/Figure_1_decon.png)](docs/source/_static/figures/Figure_1_decon.png)
+
 ## Installation
 
 Use Python 3.10. Fitting supports CPU and NVIDIA GPU; the study's reference-free
@@ -74,3 +76,8 @@ explained in the corresponding tutorials.
 
 The [H&E tutorial](tutorials/03_histology.ipynb) also covers extracting HIPT/UNI
 embeddings and using the resulting morphology features in spDecon.
+
+## License
+
+[MIT License](LICENSE). Copyright © 2026 Su Xu.
+Bundled third-party code retains its original license.
