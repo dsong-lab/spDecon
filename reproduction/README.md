@@ -12,13 +12,13 @@ therefore requires recalibration.
 
 `histology_uniform_metrics.csv` contains the updated manuscript scores for
 MOB, G2 and H1. `tutorial_metrics.csv` and `training_summary.csv` contain the
-current G2 notebook readouts and saved-fit diagnostics. The G2 data bundle
-records the coefficients, input hashes and display window in `calibration.json`
-and `protocol.json`. These updates supersede the histology values in the
+recorded G2 readouts and saved-fit diagnostics. The public notebooks now fit
+user-provided data; these tables describe the study reproduction runs. These
+updates supersede the histology values in the
 30 October campaign tables below; those tables retain their original record.
 
-The calibration and data-loading checks can be run with
-`python tests/check_histology.py` and `python tests/check_tutorial_data.py`.
+The calibration and notebook workflow checks can be run with
+`python tests/check_histology.py` and `python tests/check_user_data_tutorials.py`.
 
 ## Baseline campaign
 
@@ -60,7 +60,7 @@ The code now includes the original five-cycle profile auxiliary update for the
 hierarchical model. Group-index order may differ from archived files and is
 aligned by patient/condition identity before comparisons. Restoring this update
 and checking the full-data objective do not establish an identical full training
-trajectory; the tutorial therefore labels the CRC figures as archived results.
+trajectory; the study illustrations show the archived CRC results.
 
 Pinned dependencies, explicit seeds and optional deterministic kernels support
 repeatable new analyses. Cross-device or cross-version bitwise equality is not

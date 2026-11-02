@@ -6,6 +6,8 @@ outputs/
 docs/build/
 docs/source/notebooks/
 tutorial_data/*.tar.gz
+tutorial_data/*/
+user_data/
 *.egg-info/
 build/
 dist/

@@ -55,25 +55,19 @@ See the [model](https://dsong-lab.github.io/spDecon/model.html) and
 
 ## Tutorials
 
-Each notebook explains the model, loads example data and produces figures.
-Open it from the cloned repository; example inputs and saved fits are included in
-`tutorial_data/`.
-Inputs use AnnData for measurements, coordinates and sample metadata; see the
+The six notebooks use your own AnnData (`.h5ad`) files. Edit the input paths and
+model settings, then run the loading, fitting and plotting cells. See the
 [input guide](https://dsong-lab.github.io/spDecon/tutorial.html#anndata-input)
-and [function parameters](https://dsong-lab.github.io/spDecon/api.html).
+for the required counts, coordinates and metadata.
 
-| Workflow | Example and output | Notebook |
-|---|---|---|
-| Reference-free | Cerebellum: correlations and composition pies | [01](tutorials/01_reference_free.ipynb) |
-| Reference-based | Xenium lymph node: fixed signatures and cell fractions | [02](tutorials/02_reference_based.ipynb) |
-| Histology-guided | HER2ST G2: HIPT/UNI extraction and spatial mixtures | [03](tutorials/03_histology.ipynb) |
-| Cross-modality | RCC: independently fitted RNA and protein structures | [04](tutorials/04_cross_modality.ipynb) |
-| Joint multi-sample | Named design effects; CRC as a 12-section worked example | [05](tutorials/05_multisample.ipynb) |
-| Joint multi-omics | Tonsil: shared RNA–protein spatial components | [06](tutorials/06_joint_multiomics.ipynb) |
-
-`RUN_FIT=False` loads saved fits; set it to `True` to train the model.
-Device selection, design effects, bulk workflows and optional checks are
-explained in the corresponding tutorials.
+| Workflow | Notebook |
+|---|---|
+| Reference-free | [01](tutorials/01_reference_free.ipynb) |
+| Reference-based | [02](tutorials/02_reference_based.ipynb) |
+| Histology-guided | [03](tutorials/03_histology.ipynb) |
+| Cross-modality | [04](tutorials/04_cross_modality.ipynb) |
+| Joint multi-sample | [05](tutorials/05_multisample.ipynb) |
+| Joint multi-omics | [06](tutorials/06_joint_multiomics.ipynb) |
 
 The [H&E tutorial](tutorials/03_histology.ipynb) also covers extracting HIPT/UNI
 embeddings and using the resulting morphology features in spDecon.

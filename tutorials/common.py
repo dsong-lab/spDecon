@@ -1,7 +1,6 @@
-"""Small plotting and data-loading helpers shared by the six tutorials."""
+"""Plotting helpers shared by the six tutorials."""
 from pathlib import Path
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Patch, Wedge
@@ -13,20 +12,6 @@ COLORS = ['#4477AA', '#EE6677', '#228833', '#CCBB44', '#66CCEE', '#AA3377',
 plt.rcParams.update({'font.family':'DejaVu Sans', 'font.size':10, 'axes.spines.top':False,
                      'axes.spines.right':False, 'svg.fonttype':'none', 'pdf.fonttype':42,
                      'figure.dpi':110, 'savefig.dpi':180})
-
-
-def dataset(name):
-    path = ROOT / 'tutorial_data' / name
-    return path, np.load(path / 'data.npz', allow_pickle=False)
-
-
-def saved_fit_summary(example, arm):
-    """Show the recorded training outcome of the complete fit just loaded."""
-    records = pd.read_csv(ROOT / 'reproduction/training_summary.csv')
-    row = records.set_index(['example', 'arm']).loc[(example, arm)]
-    print(f"[saved fit] {example}/{arm} loaded | recorded status={row['status']} | "
-          f"{row['iteration_unit']}={row['iterations']} | objective={row['objective']:.9g}\n"
-          "[saved fit] This cell loaded a previous full fit; no new optimization was run.", flush=True)
 
 
 def correlation(a, b):
@@ -68,11 +53,9 @@ def legend(fig, labels, *, columns=4, y=0):
 
 
 def save_figure(fig, name):
-    web = ROOT / 'docs/source/_static/figures'
     out = ROOT / 'outputs/figures'
-    web.mkdir(parents=True,exist_ok=True); out.mkdir(parents=True,exist_ok=True)
-    fig.savefig(web/f'{name}.png',bbox_inches='tight')
-    for ext in ['svg','pdf']:
+    out.mkdir(parents=True,exist_ok=True)
+    for ext in ['png','svg','pdf']:
         fig.savefig(out/f'{name}.{ext}',bbox_inches='tight')
     plt.show()
 

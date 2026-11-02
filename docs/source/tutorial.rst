@@ -11,32 +11,33 @@ assay independently and compares the resulting structures.
 This page explains how to prepare inputs and choose a function after reading
 :doc:`model`. The six notebooks use **AnnData as the common data container**,
 then pass its count matrix, coordinates and metadata to the numerical functions.
+Supply your own files; no tutorial data download is required.
 See :doc:`api` for function parameters and return values.
 
-.. list-table:: Worked examples
+.. list-table:: Workflows
    :header-rows: 1
    :widths: 24 43 33
 
    * - Workflow
-     - Read guide and outputs
+     - Read guide
      - Run notebook
    * - Reference-free
-     - :doc:`Cerebellum: correlations and spatial pies <notebooks/01_reference_free>`
+     - :doc:`Learn profiles and spatial weights <notebooks/01_reference_free>`
      - `01_reference_free.ipynb <https://github.com/dsong-lab/spDecon/blob/main/tutorials/01_reference_free.ipynb>`_
    * - Reference-based
-     - :doc:`Xenium lymph node: fixed signatures and cell fractions <notebooks/02_reference_based>`
+     - :doc:`Fixed signatures and cell fractions <notebooks/02_reference_based>`
      - `02_reference_based.ipynb <https://github.com/dsong-lab/spDecon/blob/main/tutorials/02_reference_based.ipynb>`_
    * - Histology
-     - :doc:`G2: HIPT/UNI extraction and paired deconvolution <notebooks/03_histology>`
+     - :doc:`HIPT/UNI extraction and paired deconvolution <notebooks/03_histology>`
      - `03_histology.ipynb <https://github.com/dsong-lab/spDecon/blob/main/tutorials/03_histology.ipynb>`_
    * - Cross-modality
-     - :doc:`RCC: independent RNA/protein structures <notebooks/04_cross_modality>`
+     - :doc:`Independent RNA/protein structures <notebooks/04_cross_modality>`
      - `04_cross_modality.ipynb <https://github.com/dsong-lab/spDecon/blob/main/tutorials/04_cross_modality.ipynb>`_
    * - Joint multi-sample
-     - :doc:`Named effects with a CRC worked example <notebooks/05_multisample>`
+     - :doc:`Named effects across sections <notebooks/05_multisample>`
      - `05_multisample.ipynb <https://github.com/dsong-lab/spDecon/blob/main/tutorials/05_multisample.ipynb>`_
    * - Joint multi-omics
-     - :doc:`Tonsil: paired RNA/protein spatial structure <notebooks/06_joint_multiomics>`
+     - :doc:`Shared RNA/protein spatial weights <notebooks/06_joint_multiomics>`
      - `06_joint_multiomics.ipynb <https://github.com/dsong-lab/spDecon/blob/main/tutorials/06_joint_multiomics.ipynb>`_
 
 .. _anndata-input:
@@ -119,13 +120,13 @@ Additional inputs depend on the workflow:
 * **Fixed reference:** use a second AnnData object whose rows are cell types
   and columns are genes. Its values are arithmetic mean raw counts per cell type.
   Select the marker panel and align gene order before extracting matrices:
-  ``reference_adata = reference_adata[:, adata.var_names].copy()``. The Xenium
+  ``reference_adata = reference_adata[:, adata.var_names].copy()``. The reference-based
   notebook shows the reference table and the conversion to cell fractions.
 * **Histology:** provide a registered H&E image and spot centers in original image
   pixels to ``extract_histology``. Store its aligned output in
   ``adata.obsm["morphology"]``. Image-pixel coordinates can be stored separately
   in ``adata.obsm["spatial_image"]``; do not substitute array-grid coordinates
-  when extracting image patches. The G2 notebook includes both encoder steps.
+  when extracting image patches. The histology notebook includes both encoder steps.
 * **Multiple sections:** concatenate sections along the observation axis, using
   a common gene panel and unique spot IDs. Store ``section_id`` and the chosen
   design labels in ``adata.obs``; pass that table as ``metadata`` and specify
@@ -164,8 +165,8 @@ Pass this dictionary to ``fit_multisample(..., effects=effects)``. Change the
 names and columns to match your metadata. ``parent`` refers to an effect key;
 the same visit label in different donors has a separate within-donor deviation.
 The current interface supports one flat effect or two nested effects. The
-:doc:`CRC notebook <notebooks/05_multisample>` applies this interface to patient
-and condition, with the study's fitted results. See :doc:`api` for output labels,
+:doc:`multi-sample notebook <notebooks/05_multisample>` shows how to fit your own
+sections with these design labels. See :doc:`api` for output labels,
 centering constraints and the JSON command-line interface.
 
 From AnnData to a fit
@@ -219,20 +220,21 @@ stored separately as ``adata.obsm["spDecon_cell_fractions"]``. Multi-sample
 profiles and concatenated multi-omics profiles have different shapes; see their
 return-value descriptions in :doc:`api` and the corresponding notebooks.
 
-How to use the examples
------------------------
+Run a notebook with your data
+-----------------------------
 
 1. Follow :doc:`installation` and open a notebook with that Python environment.
-2. Run the setup and loading cells to read the included ``tutorial_data/`` files.
-3. Keep ``RUN_FIT=False`` to inspect the complete saved fit, or set it to ``True``
-   to retrain using the full dataset and recorded optimization limits. Set
-   ``DEVICE="cpu"`` or ``DEVICE="cuda"`` to choose a device, or keep ``"auto"``.
-4. Run the metric and plot cells. Tables and fitted-weight exports go to
-   ``outputs/``; PNG figures are also written to ``docs/source/_static/figures``.
+2. Set ``DATA_DIR`` and input filenames, then choose ``K`` and the relevant design
+   columns or feature links. Run the loading cells to inspect the input.
+3. Run the fitting cells. Choose ``DEVICE="cpu"`` or ``DEVICE="cuda"``, or keep
+   ``"auto"``. Inspect the returned convergence diagnostics.
+4. Run the plotting and export cells. All generated tables, figures and fitted
+   weights are written under ``outputs/``.
 
-The notebooks never use evaluation labels for model fitting. Matching components
-to known labels is explicitly performed after fitting. The CRC notebook uses the
-archived full 12-section result; it does not report a new full retraining.
+Fraction and pathology evaluations are optional and run only when you provide
+those annotations. These labels are not used for model fitting; component
+matching for evaluation is performed after fitting. The images below illustrate
+study results; the notebooks generate new results for the supplied inputs.
 
 .. image:: _static/figures/cerebellum_pies.png
    :alt: Known and inferred Cerebellum pseudo-spot compositions, shown as spatial pies.

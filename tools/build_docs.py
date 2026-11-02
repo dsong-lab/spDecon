@@ -1,4 +1,4 @@
-"""Stage executed notebooks and build the GitHub Pages site."""
+"""Stage workflow notebooks and build the GitHub Pages site."""
 from pathlib import Path
 import shutil,subprocess,sys
 root=Path(__file__).resolve().parents[1]

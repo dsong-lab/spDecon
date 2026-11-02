@@ -33,13 +33,10 @@ and numerical dependencies; then install the package and notebook requirements
 with the last two commands above.
 
 Open ``tutorials/*.ipynb`` in your preferred Jupyter interface or VS Code and
-select this environment's Python kernel. The notebooks locate the repository
-root automatically and read the example inputs and saved fits included in
-``tutorial_data/``. Use ``git pull`` to obtain updated examples.
-
-**Saved outputs:** the default ``RUN_FIT=False`` loads complete previously fitted
-results and recomputes the tutorial metrics and plots. Change it to ``True`` to
-train the model. Set ``VERBOSE=True`` for fitting progress and convergence status.
+select this environment's Python kernel. Set ``DATA_DIR`` to your own input folder
+and adjust the filenames and component count. The notebooks read ``.h5ad`` files
+and train new models; input requirements are described in :doc:`tutorial`.
+Set ``VERBOSE=True`` for fitting progress and convergence status.
 
 **Device selection:** use ``--device auto`` in the command line or
 ``DEVICE="auto"`` in notebooks to select CUDA when available and CPU otherwise.
@@ -70,18 +67,18 @@ For a CPU-only environment, use these commands instead:
    python -m pip install torchvision==0.25.0+cpu --index-url https://download.pytorch.org/whl/cpu
    python -m pip install -r requirements-histology.txt
 
-HIPT and UNI feature-extraction code is included in spDecon. Follow the G2
+HIPT and UNI feature-extraction code is included in spDecon. Follow the histology
 notebook to place the two HIPT checkpoints in ``checkpoints/hipt/`` and request
 UNI access, then call ``spDecon.image_features.extract_histology`` with
-``checkpoint_dir="checkpoints/hipt"``. The repository includes
-the registered G2 H&E image, capture centers and complete derived morphology
-features. Encoder weights are downloaded separately under their original terms.
+``checkpoint_dir="checkpoints/hipt"``. Supply your registered H&E image, capture
+centers, image resolution and capture radius, or a previously extracted morphology
+matrix. Encoder weights are obtained separately under their original terms.
 
 Build the website locally
 -------------------------
 
 Use a separate environment for documentation; it needs no GPU, numerical package
-or model data because the website renders the saved notebook outputs.
+or model data because the website renders notebook text and code without running fits.
 
 .. code-block:: bash
 

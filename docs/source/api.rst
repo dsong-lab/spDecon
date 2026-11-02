@@ -578,6 +578,5 @@ residuals measure constrained stationarity. Histories retain their existing
 evaluation frequency even when fewer rows are printed. Models with different
 penalties or data should not be ranked by their total loss values alone.
 
-The notebooks distinguish loading a saved full fit from running a new fit.
-Saved mode displays recorded training diagnostics; ``RUN_FIT=True`` enables live
-optimization output. Both paths retain the full dataset.
+The notebooks fit user-provided inputs and display the resulting diagnostics.
+Set ``VERBOSE=True`` for live optimization output.
