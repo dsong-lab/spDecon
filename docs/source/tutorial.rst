@@ -223,7 +223,7 @@ How to use the examples
 -----------------------
 
 1. Follow :doc:`installation` and open a notebook with that Python environment.
-2. Run the setup and loading cells. The versioned data bundle is downloaded once.
+2. Run the setup and loading cells to read the included ``tutorial_data/`` files.
 3. Keep ``RUN_FIT=False`` to inspect the complete saved fit, or set it to ``True``
    to retrain using the full dataset and recorded optimization limits. Set
    ``DEVICE="cpu"`` or ``DEVICE="cuda"`` to choose a device, or keep ``"auto"``.

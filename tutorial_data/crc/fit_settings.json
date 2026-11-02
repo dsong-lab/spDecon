@@ -1,0 +1,11 @@
+{
+  "K": 10,
+  "seed": 0,
+  "eta_subject": 10,
+  "eta_condition": 20,
+  "spatial_weight": 0.05,
+  "max_iter": 40000,
+  "iterations": 17525,
+  "stopping_KKT": 9.972385286552664e-05,
+  "source": "Archived complete 480-gene fit; not retrained for this tutorial release."
+}

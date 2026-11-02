@@ -5,7 +5,6 @@ __pycache__/
 outputs/
 docs/build/
 docs/source/notebooks/
-tutorial_data/*/
 tutorial_data/*.tar.gz
 *.egg-info/
 build/

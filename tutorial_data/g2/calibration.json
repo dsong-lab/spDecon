@@ -1,0 +1,15 @@
+{
+  "RNA_gradient": 0.006909363089629596,
+  "image_gradient": 0.09397528087391747,
+  "coordinate_TV_gradient": 0.06763833557600284,
+  "alpha_image": 0.3,
+  "alpha_spatial": 0.05,
+  "reference": "0.9 P0 + 0.1/K",
+  "image_weight": 0.02205695910257375,
+  "spatial_weight": 0.005107579178870972,
+  "calibration_source": "HIPT_UNI_weighted_v1",
+  "spatial_graph": "coordinate",
+  "image_exposure_weighting": true,
+  "tv_exposure_weighting": true,
+  "labels_used": false
+}

@@ -17,7 +17,7 @@ records the coefficients, input hashes and display window in `calibration.json`
 and `protocol.json`. These updates supersede the histology values in the
 30 October campaign tables below; those tables retain their original record.
 
-The calibration and cache checks can be run with
+The calibration and data-loading checks can be run with
 `python tests/check_histology.py` and `python tests/check_tutorial_data.py`.
 
 ## Baseline campaign

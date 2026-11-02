@@ -34,9 +34,8 @@ with the last two commands above.
 
 Open ``tutorials/*.ipynb`` in your preferred Jupyter interface or VS Code and
 select this environment's Python kernel. The notebooks locate the repository
-root automatically. Their first data-loading cell downloads the complete example
-bundle from GitHub if it is absent. To refresh an earlier G2 download, set
-``REFRESH_DATA=True`` in that notebook's loading cell once.
+root automatically and read the example inputs and saved fits included in
+``tutorial_data/``. Use ``git pull`` to obtain updated examples.
 
 **Saved outputs:** the default ``RUN_FIT=False`` loads complete previously fitted
 results and recomputes the tutorial metrics and plots. Change it to ``True`` to
@@ -74,7 +73,7 @@ For a CPU-only environment, use these commands instead:
 HIPT and UNI feature-extraction code is included in spDecon. Follow the G2
 notebook to place the two HIPT checkpoints in ``checkpoints/hipt/`` and request
 UNI access, then call ``spDecon.image_features.extract_histology`` with
-``checkpoint_dir="checkpoints/hipt"``. The data bundle already includes
+``checkpoint_dir="checkpoints/hipt"``. The repository includes
 the registered G2 H&E image, capture centers and complete derived morphology
 features. Encoder weights are downloaded separately under their original terms.
 

@@ -1,0 +1,49 @@
+{
+  "version": "HIPT_UNI_weighted_v1",
+  "seed": 0,
+  "K": 6,
+  "n_fitted_spots": 467,
+  "n_evaluated_spots": 402,
+  "n_genes": 14898,
+  "morphology": "HIPT16 + UNI16; block masses 0.5/0.5",
+  "calibration": "same Q and weighted losses as fitting; coordinate TV before gating",
+  "shared": "unrefined RNA consensus and calibrated spatial coefficient",
+  "saved_fit_source": "public-package GPU fits from the saved unrefined RNA consensus",
+  "public_objective_checks": {
+    "RNA_TV": {
+      "objective": 1.0647412985266749,
+      "stopping_KKT": 9.748944778972738e-05
+    },
+    "RNA_HE_TV": {
+      "objective": 1.08194736512585,
+      "stopping_KKT": 9.939214693490439e-05
+    }
+  },
+  "display_window": {
+    "center_spot": "19x12",
+    "bounds": [
+      4238.36940742451,
+      6205.010592575489,
+      2196.919407424511,
+      4163.560592575488
+    ],
+    "n_spots": 40,
+    "n_edges": 56,
+    "n_boundary_edges": 13,
+    "selection_metric": "boundary F1 gain",
+    "n_candidates": 334
+  },
+  "sha256": {
+    "RNA_HE_TV.npz": "d3447f5d63d6b805e833b5540d74d6082dc729d9d70e98a9130d53aa91843499",
+    "RNA_HE_TV_diagnostics.json": "7bb90d8b6f166fffcb3dd9e1aff22cc2120555dc17a51afdce28e65cb19163e9",
+    "RNA_TV.npz": "5163edf583b7b0f5084695e53ce5ea2d1f3f3cf943c9b0673510a1813dc84b36",
+    "RNA_TV_diagnostics.json": "cce13171ee50fb70e92f654eeeecb2c269a3a57e7a04af65ed5c2d7f074e909f",
+    "calibration.json": "8f76907b8fe4ab2b144dd8dd0fc7ccd5b37981cf76429e7145dde94dd5824eb5",
+    "data.npz": "46248d1a543e5d0a5dff31de8c0ba3599150c5480a71ce9a449602d3900da6c1",
+    "he.jpg": "9e893177b2e38defdf5b9c49dce82385344e6542665aa57960a62e1ef111f7fb",
+    "image_spots.csv": "57c2a3389c3d774657e30a4c6630f07f3815705c96f2bf0563b42995f7f68cfd",
+    "initialization.npz": "1dd959424302c48f9f45cd58629fd3417191b017fe407e2a9408ff0612cdc977",
+    "microns_per_pixel.txt": "468efbe130e8b1b0c8a5ec7c38e4491918432695497892785cd69ca581810ccd",
+    "radius_pixels.txt": "bfea756ce54d91552c40edf85a1c1a8c8a4f8288f819e3dfe4f234ed85f54261"
+  }
+}

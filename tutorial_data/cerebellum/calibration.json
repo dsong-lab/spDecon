@@ -1,0 +1,11 @@
+{
+  "spatial_weight": 0.034585606542850665,
+  "alpha_s": 0.05,
+  "epsilon": 0.02,
+  "calibration_seed": 1,
+  "RNA_gradient": 0.0319329214236002,
+  "spatial_unit_gradient": 0.04616504467550127,
+  "reference": "0.9*P0+0.1/K; B0",
+  "reused_across_seeds": true,
+  "truth_used": false
+}

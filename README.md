@@ -56,7 +56,8 @@ See the [model](https://dsong-lab.github.io/spDecon/model.html) and
 ## Tutorials
 
 Each notebook explains the model, loads example data and produces figures.
-Open it from the cloned repository; the data bundle downloads automatically.
+Open it from the cloned repository; example inputs and saved fits are included in
+`tutorial_data/`.
 Inputs use AnnData for measurements, coordinates and sample metadata; see the
 [input guide](https://dsong-lab.github.io/spDecon/tutorial.html#anndata-input)
 and [function parameters](https://dsong-lab.github.io/spDecon/api.html).

@@ -1,0 +1,67 @@
+{
+  "B": {
+    "prediction_types": [
+      "B"
+    ],
+    "truth_types": [
+      "B Cell",
+      "Memory B Cell",
+      "Naive B Cell"
+    ]
+  },
+  "Plasma": {
+    "prediction_types": [
+      "Plasma"
+    ],
+    "truth_types": [
+      "Plasma Cell"
+    ]
+  },
+  "DC": {
+    "prediction_types": [
+      "DC"
+    ],
+    "truth_types": [
+      "CD141+ Myeloid Dendritic Cell",
+      "CD1c+ Myeloid Dendritic Cell",
+      "Mature Conventional Dendritic Cell",
+      "Plasmacytoid Dendritic Cell"
+    ]
+  },
+  "CD4T": {
+    "prediction_types": [
+      "CD4T"
+    ],
+    "truth_types": [
+      "CD4+ \u03b1\u03b2 Memory T Cell",
+      "Effector CD4+ \u03b1\u03b2 T Cell",
+      "Naive Thymus Derived CD4+ \u03b1\u03b2 T Cell",
+      "Regulatory T Cell"
+    ]
+  },
+  "CD8T": {
+    "prediction_types": [
+      "CD8T"
+    ],
+    "truth_types": [
+      "CD8+ \u03b1\u03b2 Memory T Cell",
+      "Effector CD8+ \u03b1\u03b2 T Cell"
+    ]
+  },
+  "Macrophage": {
+    "prediction_types": [
+      "Macrophage"
+    ],
+    "truth_types": [
+      "Macrophage"
+    ]
+  },
+  "Mast": {
+    "prediction_types": [
+      "Mast"
+    ],
+    "truth_types": [
+      "Mast Cell"
+    ]
+  }
+}

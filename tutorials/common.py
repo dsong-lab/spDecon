@@ -1,7 +1,5 @@
 """Small plotting and data-loading helpers shared by the six tutorials."""
 from pathlib import Path
-import subprocess
-from urllib.request import urlretrieve
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -10,7 +8,6 @@ from matplotlib.patches import Patch, Wedge
 from scipy.optimize import linear_sum_assignment
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA_URL = 'https://github.com/dsong-lab/spDecon/releases/download/tutorial-data-v0.1.0/spdecon-tutorial-data.tar.gz'
 COLORS = ['#4477AA', '#EE6677', '#228833', '#CCBB44', '#66CCEE', '#AA3377',
           '#BBBBBB', '#332288', '#88CCAA', '#CC6677', '#882255', '#999933']
 plt.rcParams.update({'font.family':'DejaVu Sans', 'font.size':10, 'axes.spines.top':False,
@@ -18,15 +15,8 @@ plt.rcParams.update({'font.family':'DejaVu Sans', 'font.size':10, 'axes.spines.t
                      'figure.dpi':110, 'savefig.dpi':180})
 
 
-def dataset(name, *, refresh=False):
+def dataset(name):
     path = ROOT / 'tutorial_data' / name
-    if refresh or not (path / 'data.npz').exists():
-        archive = ROOT / 'tutorial_data' / 'spdecon-tutorial-data.tar.gz'
-        archive.parent.mkdir(exist_ok=True)
-        print('Downloading the complete six-example data bundle...')
-        urlretrieve(DATA_URL, archive)
-        subprocess.run(['tar', '-xzf', str(archive), '-C', str(ROOT)], check=True)
-        archive.unlink()
     return path, np.load(path / 'data.npz', allow_pickle=False)
 
 
