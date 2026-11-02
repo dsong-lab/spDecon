@@ -1,4 +1,6 @@
-"""Joint sample profiles, optionally nested within subjects/conditions."""
+"""Joint sample profiles with named flat or nested design effects."""
+import re
+
 import numpy as np
 import pandas as pd
 import torch
@@ -81,6 +83,37 @@ def design_matrix(metadata, group_by, subject_column=None):
     return group, parent, groups, np.asarray(subjects), a
 
 
+def _effect_design(effects):
+    """Translate named effects into the existing flat/two-level profile model."""
+    if not isinstance(effects, dict) or not 1 <= len(effects) <= 2:
+        raise ValueError('effects supports one flat effect or two nested effects')
+    specs = {}
+    for name, spec in effects.items():
+        if not isinstance(name, str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_]*', name):
+            raise ValueError('Effect names must start with a letter and contain letters, digits or underscores')
+        if (not isinstance(spec, dict) or not {'column', 'penalty'} <= spec.keys()
+                or spec.keys() - {'column', 'penalty', 'parent'}):
+            raise ValueError(f'Effect {name} requires column and penalty, with optional parent')
+        column, penalty, parent = spec['column'], spec['penalty'], spec.get('parent')
+        if not isinstance(column, str) or not column.strip():
+            raise ValueError(f'Effect {name} needs a nonempty metadata column name')
+        if isinstance(penalty, (bool, np.bool_)) or not isinstance(penalty, (int, float, np.integer, np.floating)):
+            raise ValueError(f'Effect {name} penalty must be a finite nonnegative number')
+        if parent is not None and (not isinstance(parent, str) or parent not in effects or parent == name):
+            raise ValueError(f'Effect {name} parent must name another effect')
+        specs[name] = dict(column=column, penalty=positive_number(penalty, f'{name} penalty', True), parent=parent)
+    roots = [name for name, spec in specs.items() if spec['parent'] is None]
+    if len(roots) != 1:
+        raise ValueError('Use one root effect and optionally one nested child; crossed effects and cycles are not supported')
+    root = roots[0]
+    names = [root] + [name for name in specs if name != root]
+    specs = {name: specs[name] for name in names}
+    columns = [spec['column'] for spec in specs.values()]
+    if len(set(columns)) != len(columns):
+        raise ValueError('Nested effects must use different metadata columns')
+    return specs, columns, columns[0] if len(names) == 2 else None
+
+
 class MultiSampleModel:
     def __init__(self, y, group, parent, a, k, eta_subject, eta_condition, graph, device):
         self.y = torch.as_tensor(y, dtype=torch.float64, device=device)
@@ -156,16 +189,31 @@ class MultiSampleModel:
         return h+spatial_pair_curvature(self.graph, p)
 
 
-def fit_multisample(counts, metadata, n_components, *, group_by='sample_id',
+def fit_multisample(counts, metadata, n_components, *, effects=None, group_by=None,
                     subject_column=None, edges=None, coordinates=None,
-                    eta_subject=10., eta_condition=20., spatial_weight=.05,
+                    eta_subject=None, eta_condition=None, spatial_weight=.05,
                     initial_proportions=None, initial_profiles=None, random_state=1,
                     device='auto', verbose=True, **optimizer):
-    """Fit flat group deviations or subject + within-subject group deviations.
+    """Fit one named effect or two nested effects on a common feature panel.
 
-    For condition nesting, use group_by=['subject_id', 'condition'] and
-    subject_column='subject_id'. Physical sections always retain separate graphs.
+    Each effects entry has a metadata column, a nonnegative penalty, and an
+    optional parent effect name. The two-level model centers child deviations
+    within each parent. Sections always retain separate spatial graphs.
+    The legacy group_by/subject_column/eta_* arguments remain supported, but
+    cannot be combined with effects. Their effective defaults are sample_id,
+    no parent, eta_subject=10 and eta_condition=20.
     """
+    specs = None
+    if effects is not None:
+        if any(v is not None for v in (group_by, subject_column, eta_subject, eta_condition)):
+            raise ValueError('Use effects or the legacy group_by/subject_column/eta_* arguments, not both')
+        specs, group_by, subject_column = _effect_design(effects)
+        penalties = [spec['penalty'] for spec in specs.values()]
+        eta_subject, eta_condition = penalties[0], penalties[1] if len(penalties) == 2 else 0.
+    else:
+        group_by = 'sample_id' if group_by is None else group_by
+        eta_subject = 10. if eta_subject is None else eta_subject
+        eta_condition = 20. if eta_condition is None else eta_condition
     y = validate_counts(counts)
     if len(metadata) != len(y):
         raise ValueError("One metadata row is required per spot")
@@ -196,6 +244,17 @@ def fit_multisample(counts, metadata, n_components, *, group_by='sample_id',
     extra = dict(shared_profiles=shared, subject_profiles=means, delta_subject=delta,
                  edges=edges,
                  delta_condition=within, group_index=group, group_parent=parent,
-                 subjects=subjects.astype(str), group_labels=groups.astype(str).to_numpy(),
+                 subjects=subjects.astype(str), group_labels=groups.to_numpy(str),
                  group_columns=np.asarray(groups.columns, str))
+    if specs is not None:
+        extra['effect_names'] = np.asarray(list(specs), str)
+        effect_penalties = {}
+        for level, (name, spec) in enumerate(specs.items()):
+            extra[f'effect_delta_{name}'] = delta if level == 0 else within
+            extra[f'effect_index_{name}'] = parent[group] if level == 0 else group
+            extra[f'effect_labels_{name}'] = (extra['group_labels'] if level or len(specs) == 1
+                                             else subjects.astype(str)[:, None])
+            extra[f'effect_columns_{name}'] = np.asarray(groups.columns if level else [spec['column']], str)
+            effect_penalties[name] = diag['subject_penalty' if level == 0 else 'condition_penalty']
+        diag.update(effects=specs, effect_penalties=effect_penalties)
     return JointFit(state[0].cpu().numpy(), state[1].cpu().numpy(), history, diag, extra)

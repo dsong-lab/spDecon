@@ -33,7 +33,7 @@ See :doc:`api` for function parameters and return values.
      - :doc:`RCC: independent RNA/protein structures <notebooks/04_cross_modality>`
      - `04_cross_modality.ipynb <https://github.com/dsong-lab/spDecon/blob/main/tutorials/04_cross_modality.ipynb>`_
    * - Joint multi-sample
-     - :doc:`CRC: 480 genes, 12 sections and nested profiles <notebooks/05_multisample>`
+     - :doc:`Named effects with a CRC worked example <notebooks/05_multisample>`
      - `05_multisample.ipynb <https://github.com/dsong-lab/spDecon/blob/main/tutorials/05_multisample.ipynb>`_
    * - Joint multi-omics
      - :doc:`Tonsil: paired RNA/protein spatial structure <notebooks/06_joint_multiomics>`
@@ -71,9 +71,10 @@ six notebooks; ``N`` denotes locations and ``G`` denotes features.
      - ``N``
      - Physical section IDs; graph edges stay within sections. A single section
        can use the same ID for every spot.
-   * - ``adata.obs["subject_id"]``, ``adata.obs["condition"]``
+   * - Design columns in ``adata.obs``
      - ``N`` each
-     - Patient and condition labels for the nested multi-sample model.
+     - Categorical labels selected by ``effects`` for joint samples,
+       such as sample, donor or visit. CRC uses subject_id and condition.
    * - ``adata.obsm["morphology"]``
      - ``N × 32``
      - Histology only: HIPT and UNI visual-word frequencies. Each 16-column
@@ -126,14 +127,46 @@ Additional inputs depend on the workflow:
   in ``adata.obsm["spatial_image"]``; do not substitute array-grid coordinates
   when extracting image patches. The G2 notebook includes both encoder steps.
 * **Multiple sections:** concatenate sections along the observation axis, using
-  a common gene panel and unique spot IDs. Store section, subject and condition
-  labels in ``adata.obs``; pass that table as ``metadata``.
+  a common gene panel and unique spot IDs. Store ``section_id`` and the chosen
+  design labels in ``adata.obs``; pass that table as ``metadata`` and specify
+  ``effects``. One grouping level gives flat deviations; a parent and child
+  give two nested levels. Patient/condition is the CRC example's configuration.
+  See :ref:`joint-design-tutorial`.
 * **Paired assays:** keep a dictionary such as
   ``assays = {"RNA": rna_adata, "protein": protein_adata}``. Objects share
   identical spot IDs in identical order but may have different feature panels.
   Align protein rows with ``protein_adata = protein_adata[rna_adata.obs_names].copy()``
   before constructing the dictionary. ``links`` identifies corresponding
   RNA/protein features; unmatched features remain in the model.
+
+.. _joint-design-tutorial:
+
+Choose a multi-sample design
+----------------------------
+
+Use the metadata to define the profile variation you want to model. For
+sample-specific deviations, one effect is sufficient:
+
+.. code-block:: python
+
+   effects = {"sample": {"column": "sample_id", "penalty": 10.}}
+
+For visits nested within donors:
+
+.. code-block:: python
+
+   effects = {
+       "donor": {"column": "donor_id", "penalty": 10.},
+       "visit": {"column": "timepoint", "parent": "donor", "penalty": 20.},
+   }
+
+Pass this dictionary to ``fit_multisample(..., effects=effects)``. Change the
+names and columns to match your metadata. ``parent`` refers to an effect key;
+the same visit label in different donors has a separate within-donor deviation.
+The current interface supports one flat effect or two nested effects. The
+:doc:`CRC notebook <notebooks/05_multisample>` applies this interface to patient
+and condition, with the study's fitted results. See :doc:`api` for output labels,
+centering constraints and the JSON command-line interface.
 
 From AnnData to a fit
 ---------------------

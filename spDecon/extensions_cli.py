@@ -52,6 +52,9 @@ def write_result(result, output, spots, genes, types=None):
             pd.DataFrame(b, index=labels, columns=genes).to_csv(output/f'B_group_{j}.csv')
         extra = result.extra
         pd.DataFrame(extra['group_labels'], columns=extra['group_columns']).rename_axis('group_index').to_csv(output/'profile_groups.csv')
+        for name in extra.get('effect_names', []):
+            levels = pd.DataFrame(extra[f'effect_labels_{name}'], columns=extra[f'effect_columns_{name}'])
+            levels.rename_axis('effect_index').to_csv(output/f'effect_{name}_levels.csv')
     arrays = dict(P=result.proportions, B=result.profiles, spots=np.asarray(spots, str),
                   genes=np.asarray(genes, str), components=np.asarray(labels, str), **result.extra)
     np.savez_compressed(output/'fit.npz', **arrays)
@@ -94,10 +97,11 @@ def main(argv=None):
             ap.add_argument('--offline', action='store_true')
         if mode == 'multisample':
             ap.add_argument('--metadata', type=Path, required=True, help='Spot ID, section_id, x/y and design columns')
-            ap.add_argument('--group-by', nargs='+', default=['sample_id'])
+            ap.add_argument('--effects', type=Path, help='JSON mapping effect names to column, penalty and optional parent')
+            ap.add_argument('--group-by', nargs='+', help='Legacy profile grouping columns (default: sample_id)')
             ap.add_argument('--subject-column')
-            ap.add_argument('--eta-subject', type=float, default=10.)
-            ap.add_argument('--eta-condition', type=float, default=20.)
+            ap.add_argument('--eta-subject', type=float, help='Legacy parent penalty (default: 10)')
+            ap.add_argument('--eta-condition', type=float, help='Legacy within-parent penalty (default: 20)')
             ap.add_argument('--edges', type=Path, help='Optional spot_i,spot_j CSV; otherwise construct coordinate neighbors')
     args = parser.parse_args(argv)
     if args.output.exists():
@@ -149,6 +153,7 @@ def main(argv=None):
             from .multisample import fit_multisample
             metadata = aligned(read_frame(args.metadata, text=True), data.index, 'Metadata')
             result = fit_multisample(data, metadata, args.k, group_by=args.group_by,
+                                     effects=json.loads(args.effects.read_text()) if args.effects else None,
                                      subject_column=args.subject_column, eta_subject=args.eta_subject,
                                      eta_condition=args.eta_condition,
                                      edges=read_edges(args.edges, data.index) if args.edges else None, **options)

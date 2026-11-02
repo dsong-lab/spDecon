@@ -70,17 +70,37 @@ Exposure-weighted morphology KL and image-gated TV are added to the molecular
 objective. PCA and visual-word fitting use only image features; pathology is held
 out until evaluation. See the G2 notebook for the full extraction procedure.
 
-Joint samples and conditions
-----------------------------
+Joint samples with design effects
+---------------------------------
 
-Effective profiles follow :math:`B^{(r)}=B_0+\Delta_d+\delta_r`. The shared profile
-averages subjects equally. Subject deviations sum to zero; within-subject group
-deviations average to zero. Both quadratic penalties enter optimization, rather
-than being assigned after a flat fit. Sections can share a condition profile while
-retaining separate graphs. The released implementation includes five inner
-auxiliary profile cycles and the archived safeguarded extrapolation. Its objective
-and profile update were checked on the complete CRC 480-gene data; a new full
-12-section optimization trajectory was not run.
+Each profile group has an effective profile. A flat design uses a shared profile
+plus one group deviation. For a two-level nested design,
+
+.. math::
+
+   B^{(r)}=B_0+\Delta^{(1)}_{a(r)}+\Delta^{(2)}_r.
+
+Here :math:`a(r)` is the parent of group :math:`r`. The ``effects`` specification
+names the levels and selects their metadata columns. For example, the root can
+be donor and the child visit, or the root can be batch and the child sample.
+The CRC example uses patient and within-patient condition.
+
+The parent profile averages its observed child-group profiles equally, and
+:math:`B_0` averages parent profiles equally. Root deviations sum to zero across
+parents; child deviations sum to zero within each parent. A parent with only one
+observed child has zero child deviation. With one grouping level, :math:`B_0`
+is the mean of group profiles and there is only one deviation term.
+
+Effective profiles and spot weights are learned jointly. A separate quadratic
+penalty shrinks each level's deviations, with the within-parent penalty averaged
+over that parent's child groups. Deviations can be signed; nonnegativity and the
+unit simplex constraint apply to each effective profile. Sections sharing a
+profile group keep their own spatial graphs. The implementation supports one
+flat effect or two nested effects. See :doc:`api` for configuration and outputs.
+
+The named interface uses the same objective and five-cycle auxiliary profile
+update as the CRC patient/condition fit. The CRC notebook provides its complete
+saved fit and an optional fitting call.
 
 Paired multi-omics
 ------------------

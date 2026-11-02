@@ -87,7 +87,7 @@ and [function parameters](https://dsong-lab.github.io/spDecon/api.html).
 | Reference-based | Xenium lymph node: fixed signatures and cell fractions | [02](tutorials/02_reference_based.ipynb) |
 | Histology-guided | HER2ST G2: HIPT/UNI extraction and spatial mixtures | [03](tutorials/03_histology.ipynb) |
 | Cross-modality | RCC: independently fitted RNA and protein structures | [04](tutorials/04_cross_modality.ipynb) |
-| Joint multi-sample | CRC: shared, patient and condition profiles across 12 sections | [05](tutorials/05_multisample.ipynb) |
+| Joint multi-sample | Named design effects; CRC as a 12-section worked example | [05](tutorials/05_multisample.ipynb) |
 | Joint multi-omics | Tonsil: shared RNA–protein spatial components | [06](tutorials/06_joint_multiomics.ipynb) |
 
 `RUN_FIT=False` loads saved fits; set it to `True` to train the model.
@@ -103,6 +103,42 @@ code for extracting HIPT/UNI embeddings, building spot-level morphology features
 and passing them to spDecon. See the
 [H&E workflow](https://dsong-lab.github.io/spDecon/api.html#histology-guided-fitting)
 for the same steps with your own image and AnnData object.
+
+## Joint samples with named effects
+
+Choose the grouping labels from your metadata. One effect gives flat deviations;
+a parent and child give two nested levels. For example, visits within donors:
+
+```python
+from spDecon.multisample import fit_multisample
+
+effects = {
+    "donor": {"column": "donor_id", "penalty": 10.},
+    "visit": {"column": "timepoint", "parent": "donor", "penalty": 20.},
+}
+result = fit_multisample(
+    adata.to_df(), adata.obs, n_components=10, effects=effects,
+    coordinates=adata.obsm["spatial"], device="auto",
+)
+deviations = {
+    name: result.extra[f"effect_delta_{name}"]
+    for name in result.extra["effect_names"]
+}
+```
+
+`adata.obs` also needs `section_id`; spatial edges stay within each physical
+section. `parent` refers to an effect name. Each donor has its own visit
+deviations, centered within that donor. Larger penalties shrink deviations more
+strongly; the values above are example settings. For one grouping level, use
+`effects = {"sample": {"column": "sample_id", "penalty": 10.}}`.
+
+The CRC tutorial uses the same interface with patient and condition labels.
+The [API guide](https://dsong-lab.github.io/spDecon/api.html#joint-multi-sample-fitting)
+describes the supported designs, named output labels, and `--effects effects.json`
+command-line option. Existing `group_by` / `subject_column` calls remain supported.
+Paired assays with different feature panels use the separate multi-omics interface.
+Run `python tests/check_multisample_effects.py` to check flat/nested designs,
+equivalence with the existing fitting interface and JSON/array exports on CPU.
 
 ## CPU workflow check
 

@@ -82,7 +82,7 @@ Model entry points
    * - ``spDecon.histology.fit_histology``
      - RNA/morphology reconstruction with gated spatial TV
    * - ``spDecon.multisample.fit_multisample``
-     - Shared plus subject and within-subject condition profiles
+     - Shared profiles plus named flat or nested design effects
    * - ``spDecon.multiomics.fit_multiomics``
      - Paired assays with shared spot weights and free or fixed profiles
    * - ``spDecon.reproducibility.set_seed``
@@ -322,38 +322,149 @@ provides the registered image, inputs and executed plots for this workflow.
 Joint multi-sample fitting
 --------------------------
 
+Combine samples measured on a common feature panel. Define deviations through
+``effects``: each key names an effect, ``column`` selects its categorical labels
+in ``adata.obs``, and ``penalty`` controls shrinkage toward its parent profile.
+The names are chosen by the user; patient and condition are labels used in the
+CRC example, not required field names.
+
+**One grouping level**, for example sample-specific deviations:
+
+.. code-block:: python
+
+   effects = {
+       "sample": {"column": "sample_id", "penalty": 10.},
+   }
+
+**Two nested levels**, for example timepoints within each donor:
+
 .. code-block:: python
 
    from spDecon.multisample import fit_multisample
 
+   effects = {
+       "donor": {"column": "donor_id", "penalty": 10.},
+       "timepoint": {"column": "visit", "parent": "donor", "penalty": 20.},
+   }
    result = fit_multisample(
-       adata.to_df(), adata.obs, K,
-       group_by=["subject_id", "condition"], subject_column="subject_id",
-       coordinates=adata.obsm["spatial"],
-       eta_subject=10., eta_condition=20., spatial_weight=.05,
+       adata.to_df(), adata.obs, K, effects=effects,
+       coordinates=adata.obsm["spatial"], spatial_weight=.05,
        random_state=0, device="auto", max_iter=40000)
 
 ``metadata``
    One row per spot, in count-matrix order. Include ``section_id`` for physical
-   sections and the columns referenced by ``group_by`` and ``subject_column``.
-``group_by``, ``subject_column``
-   ``group_by`` defines expression-profile groups. A list of subject and condition
-   columns gives groups nested within subjects; ``subject_column`` identifies
-   the parent subject. Omitting ``subject_column`` fits flat group deviations.
-``eta_subject``, ``eta_condition``
-   Nonnegative penalties on subject and within-subject condition deviations.
-   Larger values shrink the corresponding deviations more strongly.
+   sections and the columns referenced in ``effects``. Each section must belong
+   to one profile group. Several sections may share a group while keeping their
+   spatial graphs separate.
+``effects``
+   A dictionary defining one flat effect or a root effect and one nested child.
+   Effect names start with a letter and contain letters, digits or underscores.
+   Each entry requires ``column`` (a nonempty metadata column name) and
+   ``penalty`` (a finite nonnegative number). The optional ``parent`` names
+   another effect key, not a metadata column. Dictionary order does not determine
+   the hierarchy. The two effects must use different columns.
+``penalty``
+   Larger values shrink the corresponding profile deviations more strongly;
+   zero removes that penalty. The model retains its feature/component scaling
+   and equal-parent weighting. Values 10 and 20 reproduce the CRC example's
+   settings; they are not selected automatically for other datasets.
+``parent``
+   Child levels are identified by the combination of parent and child labels.
+   Thus ``early`` in donor D1 and ``early`` in donor D2 have separate deviations.
+   Child deviations average to zero within each parent. A parent with only one
+   observed child has a zero child deviation. This interface supports one or two
+   nested levels; crossed effects, continuous covariates and deeper hierarchies
+   are not implemented.
 ``edges``, ``coordinates``, ``spatial_weight``
    Supply an ``E × 2`` integer edge array, or coordinates for graph construction.
    Endpoint indices refer to the current spot order. Edges must stay within
    ``section_id``. With coordinates, the function constructs section-specific
    edges internally; ``spatial_weight`` controls their smoothing penalty.
 
-``result.proportions`` is ``N × K``. ``result.profiles`` is
-``n_groups × K × G``. The ``extra`` dictionary contains ``shared_profiles``
-(``K × G``), ``delta_subject`` (``n_subjects × K × G``), ``delta_condition``
-(``n_groups × K × G``), ``subjects`` and ``group_labels``. The shared profiles can
-be stored as ``adata.varm["spDecon_profiles"] = result.extra["shared_profiles"].T``.
+The same interface describes donor/visit, batch/sample or patient/condition
+nesting when that hierarchy matches the experiment. For the CRC dataset:
+
+.. code-block:: python
+
+   effects = {
+       "patient": {"column": "subject_id", "penalty": 10.},
+       "condition": {"column": "condition", "parent": "patient", "penalty": 20.},
+   }
+
+See :doc:`notebooks/05_multisample` for the complete CRC example. For paired assays
+with different feature panels, use ``fit_multiomics`` and feature ``links`` as
+shown below; it couples profiles on matched features and shares spot weights.
+
+Outputs and effect labels
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``result.proportions`` is ``N × K`` and ``result.profiles`` is
+``n_groups × K × G``. ``result.extra["shared_profiles"]`` is ``K × G``.
+For each effect name, the ``extra`` dictionary includes:
+
+* ``effect_delta_<name>``: deviations of shape ``n_levels × K × G``.
+* ``effect_labels_<name>`` and ``effect_columns_<name>``: the metadata labels and
+  their column names in deviation-row order. Nested levels include both labels.
+* ``effect_index_<name>``: one deviation-row index per input spot.
+
+``effect_names`` lists effects from root to child. Read all deviations without
+using any dataset-specific names:
+
+.. code-block:: python
+
+   import pandas as pd
+
+   deviations = {
+       name: result.extra[f"effect_delta_{name}"]
+       for name in result.extra["effect_names"]
+   }
+   for name, delta in deviations.items():
+       levels = pd.DataFrame(
+           result.extra[f"effect_labels_{name}"],
+           columns=result.extra[f"effect_columns_{name}"])
+       print(name, delta.shape)
+       print(levels)
+
+``result.diagnostics["effects"]`` records the resolved design, and
+``result.diagnostics["effect_penalties"]`` reports each weighted penalty value.
+Shared profiles can be stored as
+``adata.varm["spDecon_profiles"] = result.extra["shared_profiles"].T``.
+
+Command line
+~~~~~~~~~~~~
+
+Save the same specification as ``effects.json``. JSON numbers use ``10.0``
+instead of Python's ``10.``:
+
+.. code-block:: json
+
+   {
+     "donor": {"column": "donor_id", "penalty": 10.0},
+     "timepoint": {"column": "visit", "parent": "donor", "penalty": 20.0}
+   }
+
+.. code-block:: bash
+
+   python run_spdecon.py multisample \
+     --counts counts.csv --metadata metadata.csv --effects effects.json \
+     --k 10 --device auto --output runs/joint
+
+The metadata CSV contains spot IDs, ``section_id``, ``x``, ``y`` and the design
+columns. Coordinates can be omitted with explicit ``--edges`` or
+``--spatial-weight 0``. In addition to ``P.csv`` and group profile tables, the
+CLI saves named deviations in ``fit.npz`` and the corresponding labels in
+``effect_<name>_levels.csv``. Arrays can be loaded with ``allow_pickle=False``.
+
+Compatibility
+~~~~~~~~~~~~~
+
+Existing calls with ``group_by``, ``subject_column``, ``eta_subject`` and
+``eta_condition`` retain their behavior. Use either that interface or ``effects``
+in a call. The CRC effects specification above gives the same objective and
+updates as ``group_by=["subject_id", "condition"]``,
+``subject_column="subject_id"``, ``eta_subject=10.`` and ``eta_condition=20.``.
+The existing ``delta_subject`` and ``delta_condition`` output aliases remain
+available; new code can use the named outputs described above.
 
 Joint multi-omics fitting
 -------------------------

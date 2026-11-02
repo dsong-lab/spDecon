@@ -36,7 +36,7 @@ figures from complete fitted results.
      - Independently inferred RNA and protein structures
      - :doc:`RCC <notebooks/04_cross_modality>`
    * - Joint multi-sample
-     - Shared, patient and condition-specific profiles
+     - Shared profiles and user-defined flat or nested effects
      - :doc:`CRC 480-gene panel <notebooks/05_multisample>`
    * - Joint multi-omics
      - Shared spot weights across paired assays
