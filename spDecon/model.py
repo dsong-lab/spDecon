@@ -9,6 +9,7 @@ import numpy as np
 import torch
 
 from .config import SolverConfig
+from ._joint import device_name
 
 EPS = 1e-12
 
@@ -60,11 +61,8 @@ def _validate(
 
 
 def _torch_context(config: SolverConfig) -> tuple[torch.device, torch.dtype]:
-    requested = config.device
-    if requested.startswith("cuda") and not torch.cuda.is_available():
-        requested = "cpu"
     dtype = torch.float64 if config.dtype == "float64" else torch.float32
-    return torch.device(requested), dtype
+    return torch.device(device_name(config.device)), dtype
 
 
 def project_rows_lower_simplex(

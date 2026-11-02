@@ -126,7 +126,7 @@ def build_morphology(directory, spots, radius):
 
 
 def extract_histology(image, spots, *, microns_per_pixel, radius_pixels,
-                      checkpoint_dir, output, device='cuda', offline=False):
+                      checkpoint_dir, output, device='auto', offline=False):
     """Extract the paper's two-encoder features from an image and pixel centers.
 
     `checkpoint_dir` contains vit256_small_dino.pth and vit4k_xs_dino.pth;
@@ -134,6 +134,8 @@ def extract_histology(image, spots, *, microns_per_pixel, radius_pixels,
     `spots` is a spot-indexed DataFrame with x/y in original image pixels.
     """
     from PIL import Image
+    from ._joint import device_name
+    device = device_name(device)
     source = Path(__file__).resolve().with_name('_image_encoders')
     checkpoints = Path(checkpoint_dir).resolve()
     image, output = Path(image).resolve(), Path(output).resolve()
@@ -227,9 +229,7 @@ def main():
         np.random.seed(0)
         # Use existing Hugging Face credentials/cache; never pass or print tokens.
         uni.login = lambda *_args, **_kwargs: None
-        if device != 'cuda' and torch.cuda.is_available():
-            raise ValueError('The UNI encoder selects CUDA when available; use device=cuda')
-        hist = uni.main(output+'/', None)
+        hist = uni.main(output+'/', None, device=device)
         with (Path(output)/'embeddings-hist-uni.pickle').open('wb') as stream:
             pickle.dump(dict(his=hist, rgb=rgb(output+'/'), pos=pos(output+'/', hist)), stream)
         return
@@ -240,7 +240,7 @@ def main():
     parser.add_argument('--radius-pixels', required=True, type=float)
     parser.add_argument('--checkpoint-dir', required=True, help='Directory containing the two pretrained HIPT .pth files')
     parser.add_argument('--output', required=True)
-    parser.add_argument('--device', default='cuda')
+    parser.add_argument('--device', default='auto')
     parser.add_argument('--offline', action='store_true')
     args = parser.parse_args()
     values = vars(args)

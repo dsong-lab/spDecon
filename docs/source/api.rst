@@ -23,13 +23,40 @@ Core reference-free command
 
    python run_spdecon.py core \
      --counts X.csv --coordinates coords.csv \
-     --k 11 --seeds 1 3 5 --deterministic --output runs/example
+     --k 11 --device auto --seeds 1 3 5 --deterministic --output runs/example
 
 Use a new output directory. This performs full three-branch initialization,
 consensus alignment and KL + TV refinement. The CLI writes factors, settings,
 optimization histories and convergence diagnostics. A supplied ``block`` coordinate
 column keeps graph construction within sections. ``--spatial-weight 0`` runs the
 complete count-only model; omitting it uses the recorded seed-1 calibration rule.
+
+``--device auto`` selects CUDA if available and CPU otherwise; ``--device cpu``
+forces CPU throughout initialization, calibration and refinement.
+
+Bulk deconvolution without coordinates
+--------------------------------------
+
+Use a raw-count CSV with samples in rows and genes in columns. Coordinates can
+be omitted when ``--spatial-weight 0``; no coordinate graph is constructed.
+
+.. code-block:: bash
+
+   python run_spdecon.py core \
+     --counts bulk_counts.csv --k 3 --spatial-weight 0 \
+     --device cpu --seeds 1 --output runs/bulk_cpu
+
+This runs the same three-branch reference-free workflow and estimates molecular
+component contributions. Its components are not automatically named cell types.
+
+For a fixed reference, provide a types × genes CSV with the same ordered gene
+panel as the bulk counts:
+
+.. code-block:: bash
+
+   python run_spdecon.py reference \
+     --counts bulk_counts.csv --reference reference.csv \
+     --device cpu --output runs/bulk_reference_cpu
 
 Model entry points
 ------------------
@@ -71,14 +98,18 @@ Reference-free fitting
 
 .. code-block:: python
 
-   initial = build_consensus(y, n_components=K, random_state=1, verbose=True)
+   from spDecon.config import SolverConfig
+
+   device = "auto"  # or "cpu" / "cuda"
+   initial = build_consensus(y, n_components=K, random_state=1,
+                             solver_config=SolverConfig(device=device, random_state=1))
    i, j, weights, info = spatial_graph(xy, sections)
    calibration = calibrate(
        y, initial.consensus_proportions, initial.consensus_profiles,
-       i, j, weights)
+       i, j, weights, device=device)
    result = refine(
        y, initial.consensus_proportions, initial.consensus_profiles,
-       i, j, weights, strength=calibration["spatial_weight"], seed=1)
+       i, j, weights, strength=calibration["spatial_weight"], seed=1, device=device)
 
 Import these functions from ``spDecon.consensus`` and ``spDecon.spatial``.
 The :doc:`tutorial` page gives a complete AnnData example.
@@ -91,6 +122,9 @@ The :doc:`tutorial` page gives a complete AnnData example.
    supplies ``spDecon.config.SolverConfig`` for the three branch fits; its defaults
    include 500 outer iterations, relative tolerance ``1e-6`` and P/B KKT
    tolerances ``1e-4``. It does not change the separate refinement configuration.
+``device``
+   ``SolverConfig.device`` selects the device for branch fits. Pass the same
+   value to ``calibrate`` and ``refine``. All three default to ``"auto"``.
 ``xy``, ``sections``
    ``N × 2`` coordinates and one physical section ID per spot. ``spatial_graph``
    returns two endpoint arrays, edge weights and graph information.
@@ -157,6 +191,8 @@ install the optional image dependencies and prepare a directory for HIPT weights
    mkdir -p checkpoints/hipt
    hf auth login
 
+For CPU-only image dependencies, use the commands in :doc:`installation`.
+
 Download ``vit256_small_dino.pth`` and ``vit4k_xs_dino.pth`` from the
 `official HIPT repository <https://github.com/mahmoodlab/HIPT>`_ into
 ``checkpoints/hipt/``. Request access to
@@ -188,7 +224,7 @@ original image resolution and the capture radius in that image's pixels.
        microns_per_pixel=float(Path("microns_per_pixel.txt").read_text()),
        radius_pixels=float(Path("radius_pixels.txt").read_text()),
        checkpoint_dir="checkpoints/hipt",
-       output="outputs/sample_features", device="cuda")
+       output="outputs/sample_features", device="auto")
    adata.obsm["morphology"] = q_frame.loc[adata.obs_names].to_numpy()
    adata.obs["section_id"] = "sample"
 
@@ -238,7 +274,7 @@ count; choose the component count for your own analysis.
        initial_proportions=initial.consensus_proportions,
        initial_profiles=initial.consensus_profiles,
        sections=adata.obs["section_id"].to_numpy(), random_state=0,
-       device="cuda", max_iter=20000)
+       device="auto", max_iter=20000)
    result = fit_histology(
        counts, adata.obsm["morphology"], adata.obsm["spatial"], K,
        image_weight=None, spatial_weight=None,
@@ -295,7 +331,7 @@ Joint multi-sample fitting
        group_by=["subject_id", "condition"], subject_column="subject_id",
        coordinates=adata.obsm["spatial"],
        eta_subject=10., eta_condition=20., spatial_weight=.05,
-       random_state=0, device="cuda", max_iter=40000)
+       random_state=0, device="auto", max_iter=40000)
 
 ``metadata``
    One row per spot, in count-matrix order. Include ``section_id`` for physical
@@ -335,7 +371,7 @@ Joint multi-omics fitting
        modalities, n_components=K, links=links,
        coordinates=assays["RNA"].obsm["spatial"],
        sections=assays["RNA"].obs["section_id"].to_numpy(),
-       eta=10., spatial_weight=.05, random_state=0, device="cuda")
+       eta=10., spatial_weight=.05, random_state=0, device="auto")
 
 ``modalities``
    Dictionary of ``N × G_assay`` matrices. All assays must have identical spot
@@ -407,8 +443,8 @@ arguments through their shared optimizer:
    * - ``device``
      - ``"auto"``
      - Select GPU when available, otherwise CPU, for joint optimization.
-       The reference-free spatial example above uses CUDA for calibration
-       and refinement.
+       The reference-free workflow also supports both devices throughout
+       initialization, calibration and refinement.
 
 Progress output
 ---------------

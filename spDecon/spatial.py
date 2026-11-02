@@ -5,6 +5,7 @@ import torch
 from sklearn.neighbors import NearestNeighbors
 
 from .config import SolverConfig
+from ._joint import device_name
 from .model import _tv_energy_gradient, fit_spdecon
 
 ALPHA_S = .05
@@ -49,12 +50,13 @@ def spatial_graph(xy, blocks):
         cross_section_edges=0)
 
 
-def calibrate(counts, p0, b0, i, j, weights):
+def calibrate(counts, p0, b0, i, j, weights, *, device='auto'):
     """Calibrate once on seed-1 consensus; no truth or fitted metric is used."""
-    tensor = lambda value: torch.as_tensor(value, dtype=torch.float64, device='cuda')
+    device = device_name(device)
+    tensor = lambda value: torch.as_tensor(value, dtype=torch.float64, device=device)
     y, p, b = tensor(counts), tensor(.9*p0+.1/p0.shape[1]), tensor(b0)
     rna = ((y.sum(1, keepdim=True)-y/(p@b).clamp_min(1e-8))/y.sum())@b.T
-    left, right = [torch.as_tensor(v, device='cuda', dtype=torch.long) for v in (i, j)]
+    left, right = [torch.as_tensor(v, device=device, dtype=torch.long) for v in (i, j)]
     _, spatial = _tv_energy_gradient(p,
         (left, right, tensor(weights)/float(weights.sum()), 1., EPSILON))
     tangent = lambda g: float(torch.linalg.norm(g-g.mean(1, keepdim=True)))
@@ -66,12 +68,12 @@ def calibrate(counts, p0, b0, i, j, weights):
                 reused_across_seeds=True, truth_used=False)
 
 
-def refine(counts, p0, b0, i, j, weights, strength, seed, *, verbose=True, log_every=10):
+def refine(counts, p0, b0, i, j, weights, strength, seed, *, device='auto', verbose=True, log_every=10):
     """Jointly refine P/B from the unrefined consensus under KL + TV."""
     if not np.isfinite(strength) or strength < 0:
         raise ValueError('Spatial weight must be finite and nonnegative')
     if verbose:
         print(f"[spDecon] spatial refinement | spatial_weight={strength:.6g}", flush=True)
     return fit_spdecon(counts, p0.shape[1],
-        p0.copy(), b0.copy(), SolverConfig(random_state=seed, verbose=verbose, log_every=log_every), tv_edges=np.column_stack([i, j]),
+        p0.copy(), b0.copy(), SolverConfig(random_state=seed, device=device, verbose=verbose, log_every=log_every), tv_edges=np.column_stack([i, j]),
         tv_weights=weights, tv_lambda=strength, tv_epsilon=EPSILON)

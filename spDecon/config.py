@@ -21,7 +21,7 @@ class SolverConfig:
     maximum_step: float = 1e8
     lower_bound: float = 1e-8
     random_state: int = 0
-    device: str = "cuda"
+    device: str = "auto"
     dtype: str = "float32"
     verbose: bool = True
     log_every: int = 10

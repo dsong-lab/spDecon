@@ -19,7 +19,7 @@ torch.multiprocessing.set_sharing_strategy("file_system")
 
 
 def get_vit256(
-    pretrained_weights=None, arch="vit_small", device=torch.device("cuda:0")
+    pretrained_weights=None, arch="vit_small", device=None
 ):
     r"""
     Builds ViT-256 Model.
@@ -34,11 +34,7 @@ def get_vit256(
     """
 
     checkpoint_key = "teacher"
-    device = (
-        torch.device("cuda:0")
-        if torch.cuda.is_available()
-        else torch.device("cpu")
-    )
+    device = torch.device(device or ("cuda:0" if torch.cuda.is_available() else "cpu"))
     model256 = vits.__dict__[arch](patch_size=16, num_classes=0)
     for p in model256.parameters():
         p.requires_grad = False
@@ -64,7 +60,7 @@ def get_vit256(
 
 def get_vit4k(
         pretrained_weights=None, arch="vit4k_xs",
-        device=torch.device("cuda:0")):
+        device=None):
     r"""
     Builds ViT-4K Model.
 
@@ -78,11 +74,7 @@ def get_vit4k(
     """
 
     checkpoint_key = "teacher"
-    device = (
-        torch.device("cuda:0")
-        if torch.cuda.is_available()
-        else torch.device("cpu")
-    )
+    device = torch.device(device or ("cuda:0" if torch.cuda.is_available() else "cpu"))
     model4k = vits4k.__dict__[arch](num_classes=0)
     for p in model4k.parameters():
         p.requires_grad = False

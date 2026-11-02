@@ -8,7 +8,7 @@ import numpy as np
 from torch.utils.data import Dataset
 Image.MAX_IMAGE_PIXELS = None
 
-def main(prefix, login_value):
+def main(prefix, login_value, device=None):
     def pad(emd, num):
         h, w = emd.shape[0], emd.shape[1]
         pad_h = (num - h % num) % num
@@ -22,7 +22,7 @@ def main(prefix, login_value):
         assert new_h % num == 0 and new_w % num == 0
         return padded_matrix
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
     img_emb = []
 
     def forward_hook(module, input, output):

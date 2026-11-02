@@ -160,7 +160,7 @@ def main(argv=None):
             image_spots = aligned(read_frame(args.image_spots), data.index, 'Image coordinates')
             q = extract_histology(args.image, image_spots, microns_per_pixel=args.microns_per_pixel,
                                   radius_pixels=args.radius_pixels, checkpoint_dir=args.checkpoint_dir,
-                                  output=args.output/'image_features', device='cuda', offline=args.offline)
+                                  output=args.output/'image_features', device=args.device, offline=args.offline)
             result = fit_histology(data, q, xy[['x', 'y']].to_numpy(), args.k,
                                    image_weight=args.image_weight,
                                    sections=xy['block'].to_numpy() if 'block' in xy else None, **options)

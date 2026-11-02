@@ -146,24 +146,29 @@ refines its weights and profiles using the spatial graph:
 .. code-block:: python
 
    from spDecon.reproducibility import set_seed
+   from spDecon.config import SolverConfig
    from spDecon.consensus import build_consensus
    from spDecon.spatial import spatial_graph, calibrate, refine
 
    set_seed(1, deterministic=True)
+   device = "auto"  # "cpu" to force CPU; "cuda" to require a GPU
    y = np.array(counts, dtype=float, order="F")  # raw matrix selected above
-   initial = build_consensus(y, n_components=11, random_state=1)
+   initial = build_consensus(y, n_components=11, random_state=1,
+                             solver_config=SolverConfig(device=device, random_state=1))
    i, j, w, graph_info = spatial_graph(
        adata.obsm["spatial"], adata.obs["section_id"].to_numpy())
    calibration = calibrate(
-       y, initial.consensus_proportions, initial.consensus_profiles, i, j, w)
+       y, initial.consensus_proportions, initial.consensus_profiles, i, j, w, device=device)
    result = refine(
        y, initial.consensus_proportions, initial.consensus_profiles,
-       i, j, w, strength=calibration["spatial_weight"], seed=1)
+       i, j, w, strength=calibration["spatial_weight"], seed=1, device=device)
 
 ``n_components`` selects the number of latent components; choose it for your
 dataset (11 is the Cerebellum example). ``random_state`` controls initialization.
 ``strength`` controls spatial smoothing; here it is calibrated from the seed-1
-consensus. Reference-free training uses the CUDA environment. Function-specific
+consensus. Both CPU and CUDA are supported; the study's reference-free fits used
+GPU acceleration. For bulk samples without coordinates, use the count-only
+command in :doc:`api`. Function-specific
 arguments, convergence controls and other workflows are described in :doc:`api`.
 
 For a single-assay fit, store the result alongside the input:
@@ -187,7 +192,8 @@ How to use the examples
 1. Follow :doc:`installation` and open a notebook with that Python environment.
 2. Run the setup and loading cells. The versioned data bundle is downloaded once.
 3. Keep ``RUN_FIT=False`` to inspect the complete saved fit, or set it to ``True``
-   to retrain using the full dataset and recorded optimization limits.
+   to retrain using the full dataset and recorded optimization limits. Set
+   ``DEVICE="cpu"`` or ``DEVICE="cuda"`` to choose a device, or keep ``"auto"``.
 4. Run the metric and plot cells. Tables and fitted-weight exports go to
    ``outputs/``; PNG figures are also written to ``docs/source/_static/figures``.
 

@@ -12,6 +12,7 @@ import pandas as pd
 import torch
 
 from .config import SolverConfig
+from ._joint import device_name
 from ._io import read_frame, write_json
 from .consensus import build_consensus
 from .spatial import ALPHA_S, EPSILON, CALIBRATION_SEED, spatial_graph, calibrate, refine
@@ -23,12 +24,13 @@ def main():
     ap = argparse.ArgumentParser(prog='run_spdecon.py', description=__doc__,
         epilog='Other models: reference, histology, multisample, multiomics. Use run_spdecon.py MODEL --help.')
     ap.add_argument('--counts', type=Path, required=True, help='Raw counts CSV: spots x genes, first column spot ID')
-    ap.add_argument('--coordinates', type=Path, required=True, help='CSV with spot ID, x, y; optionally block')
+    ap.add_argument('--coordinates', type=Path, help='CSV with spot ID, x, y; optionally block. May be omitted with --spatial-weight 0 for bulk samples')
     ap.add_argument('--blocks', type=Path, help='Optional CSV with spot ID and block; required for multiple sections unless coordinates contain block')
     ap.add_argument('--k', type=int, required=True)
     ap.add_argument('--counts-order', choices=['F', 'C'], default='F',
                     help='Dense count memory layout (default: F)')
     ap.add_argument('--seeds', nargs='+', type=int, default=[1, 3, 5])
+    ap.add_argument('--device', default='auto', help='auto (CUDA if available, otherwise CPU), cpu, cuda or cuda:N')
     ap.add_argument('--deterministic', action='store_true', help='Use deterministic CUDA kernels and fixed RNG states; may differ from historical float32 fits')
     ap.add_argument('--spatial-weight', type=float, help='Explicit lambda override; 0 is the RNA-only control. Default: seed-1 gradient calibration')
     ap.add_argument('--output', type=Path, required=True, help='New output directory')
@@ -41,24 +43,33 @@ def main():
         ap.error('Seeds must be distinct nonnegative integers')
     if args.spatial_weight is not None and (not np.isfinite(args.spatial_weight) or args.spatial_weight < 0):
         ap.error('Spatial weight must be finite and nonnegative')
-    if not torch.cuda.is_available():
-        raise RuntimeError('The selected float32 native solver requires CUDA')
+    if args.coordinates is None and (args.spatial_weight != 0 or args.blocks is not None):
+        ap.error('Without --coordinates, use --spatial-weight 0 and omit --blocks')
+    device = device_name(args.device)
+    print(f'[spDecon] device={device}', flush=True)
     torch.set_num_threads(1)
-    x, xy = read_frame(args.counts), read_frame(args.coordinates)
+    x = read_frame(args.counts)
     y = np.array(x.to_numpy(), dtype=float, order=args.counts_order)
     if not np.isfinite(y).all() or (y < 0).any() or (y.sum(1) <= 0).any():
         raise ValueError('Counts must be finite and nonnegative, without empty spots')
     if not 1 <= args.k <= min(y.shape):
         raise ValueError('K is incompatible with counts')
-    if set(x.index) != set(xy.index):
-        raise ValueError('Coordinate and counts spot IDs must match')
-    xy = xy.loc[x.index]
-    block_frame = read_frame(args.blocks) if args.blocks else xy
-    if args.blocks and set(block_frame.index) != set(x.index):
-        raise ValueError('Block and counts spot IDs must match')
-    blocks = (block_frame.loc[x.index, 'block'].to_numpy(dtype=str)
-              if args.blocks or 'block' in block_frame else np.repeat('0', len(x)))
-    i, j, w, graph_info = spatial_graph(xy[['x', 'y']].to_numpy(), blocks)
+    if args.coordinates is not None:
+        xy = read_frame(args.coordinates)
+        if set(x.index) != set(xy.index):
+            raise ValueError('Coordinate and counts spot IDs must match')
+        xy = xy.loc[x.index]
+        block_frame = read_frame(args.blocks) if args.blocks else xy
+        if args.blocks and set(block_frame.index) != set(x.index):
+            raise ValueError('Block and counts spot IDs must match')
+        blocks = (block_frame.loc[x.index, 'block'].to_numpy(dtype=str)
+                  if args.blocks or 'block' in block_frame else np.repeat('0', len(x)))
+        i, j, w, graph_info = spatial_graph(xy[['x', 'y']].to_numpy(), blocks)
+    else:
+        i, j, w = np.array([], dtype=np.int64), np.array([], dtype=np.int64), np.array([])
+        blocks = np.repeat('', len(x))
+        graph_info = dict(graph='none (non-spatial samples)', sections=[], n_edges=0,
+                          normalizer=0., cross_section_edges=0)
     args.output.mkdir(parents=True)
     np.savez_compressed(args.output/'graph.npz', edge_i=i, edge_j=j, weight=w,
                         spot_ids=x.index.to_numpy(str), blocks=blocks)
@@ -66,16 +77,17 @@ def main():
     write_json(args.output/'config.json', dict(pipeline='spDecon_consensus_spatial_TV',
         K=args.k, seeds=args.seeds, counts_order=args.counts_order, alpha_s=ALPHA_S, epsilon=EPSILON,
         calibration_seed=CALIBRATION_SEED, lambda_override=args.spatial_weight,
-        graph=graph_info, final_optimizer=SolverConfig(random_state=1).to_dict(),
+        device=device, graph=graph_info, final_optimizer=SolverConfig(random_state=1, device=device).to_dict(),
         start_stage='unrefined_consensus', truth_used=False,
         torch_version=torch.__version__, deterministic_algorithms=args.deterministic))
     started = time.perf_counter()
     calibration_fit = None
     if args.spatial_weight is None:
         print('Calibrating lambda from seed 1 consensus', flush=True)
-        calibration_fit = build_consensus(y, args.k, random_state=CALIBRATION_SEED)
+        calibration_fit = build_consensus(y, args.k, random_state=CALIBRATION_SEED,
+            solver_config=SolverConfig(random_state=CALIBRATION_SEED, device=device))
         calibration = calibrate(y, calibration_fit.consensus_proportions,
-            calibration_fit.consensus_profiles, i, j, w)
+            calibration_fit.consensus_profiles, i, j, w, device=device)
         np.savez_compressed(args.output/'calibration_consensus.npz',
             P=calibration_fit.consensus_proportions, B=calibration_fit.consensus_profiles)
     else:
@@ -87,8 +99,10 @@ def main():
     for seed in args.seeds:
         print(f'Seed {seed}, lambda={strength:.17g}', flush=True)
         base = (calibration_fit if seed == CALIBRATION_SEED and calibration_fit is not None
-                else build_consensus(y, args.k, random_state=seed))
-        fit = refine(y, base.consensus_proportions, base.consensus_profiles, i, j, w, strength, seed)
+                else build_consensus(y, args.k, random_state=seed,
+                    solver_config=SolverConfig(random_state=seed, device=device)))
+        fit = refine(y, base.consensus_proportions, base.consensus_profiles, i, j, w, strength, seed,
+                     device=device)
         dest = args.output/f'seed_{seed}'
         dest.mkdir()
         np.savez_compressed(dest/'fit.npz', P=fit.proportions, B=fit.profiles,

@@ -44,6 +44,7 @@ def main():
                 workers.append(worker)
                 assert Path(command[4]) == source
                 assert Path(command[5]) == output
+                assert command[6] == 'cpu'
                 with Image.open(output / 'he.jpg') as im:
                     width, height = im.size
                 groups = {'sub': 4, 'rgb': 3, 'cls': 2} if worker == '--hipt-worker' else {'his': 4, 'rgb': 3, 'pos': 2}
@@ -66,6 +67,7 @@ def main():
             np.testing.assert_array_equal(saved['Q'], q)
         metadata = json.loads((output / 'provenance.json').read_text())
         assert metadata['hipt_checkpoint_dir'] == str(checkpoints)
+        assert metadata['device'] == 'cpu'
         assert not metadata['molecular_data_used']
         try:
             extract_histology(image, spots, microns_per_pixel=.5, radius_pixels=48,
