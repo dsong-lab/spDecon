@@ -61,8 +61,9 @@ Run a notebook with your data
 Fraction and pathology evaluations are optional and run only when you provide
 those annotations. These labels are not used for model fitting; component
 matching for evaluation is performed after fitting. Each notebook displays archived
-example figures and generates new results for the supplied inputs. Study data
-links, parameter notes and archived records are collected in :doc:`reproducibility`.
+example figures and generates new results for the supplied inputs. Archived fit
+diagnostics and evaluation tables are available in the repository's
+`reproduction record <https://github.com/dsong-lab/spDecon/blob/main/reproduction/README.md>`_.
 
 .. toctree::
    :hidden:
