@@ -28,9 +28,19 @@ Install the pinned analysis environment
    python -m pip install --no-deps --no-build-isolation -e .
    python -m pip install -r requirements-notebooks.txt
 
-Alternatively, ``conda env create -f environment.yml`` installs the pinned GPU Python
-and numerical dependencies; then install the package and notebook requirements
-with the last two commands above.
+Alternatively, use Conda for the pinned Python and GPU numerical dependencies.
+Activate ``spdecon-public`` before installing the package and notebook requirements:
+
+.. code-block:: bash
+
+   git clone https://github.com/dsong-lab/spDecon.git
+   cd spDecon
+   unset PYTHONPATH
+   export PYTHONNOUSERSITE=1
+   conda env create -f environment.yml
+   conda activate spdecon-public
+   python -m pip install --no-deps --no-build-isolation -e .
+   python -m pip install -r requirements-notebooks.txt
 
 Open ``tutorials/*.ipynb`` in your preferred Jupyter interface or VS Code and
 select this environment's Python kernel. Set ``DATA_DIR`` to your own input folder
@@ -41,7 +51,8 @@ Set ``VERBOSE=True`` for fitting progress and convergence status.
 **Device selection:** use ``--device auto`` in the command line or
 ``DEVICE="auto"`` in notebooks to select CUDA when available and CPU otherwise.
 Use ``cpu`` to force CPU or ``cuda`` (optionally ``cuda:0``) for a specific GPU.
-The strict fixed-reference RNA notebook uses its CPU solver.
+The reference-based tutorial (02) uses its CPU solver and exposes ``MAX_STEPS``
+to limit optimization; ``K`` is determined by the number of reference cell types.
 
 To check the full CPU pipeline after installation:
 
