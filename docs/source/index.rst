@@ -66,4 +66,3 @@ spDecon is released under the
    tutorial
    model
    api
-   reproducibility

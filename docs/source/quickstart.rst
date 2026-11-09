@@ -74,8 +74,7 @@ Continue with your data
 -----------------------
 
 Use :doc:`prepare_data` to prepare real inputs, then choose one of the six
-workflows in :doc:`tutorial`. See :doc:`api` for CLI options and Python outputs,
-or :doc:`reproducibility` for study datasets and recorded results.
+workflows in :doc:`tutorial`. See :doc:`api` for CLI options and Python outputs.
 
 Inspect the complete source in
 `examples/quick_start.py <https://github.com/dsong-lab/spDecon/blob/main/examples/quick_start.py>`_.
