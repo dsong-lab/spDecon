@@ -1,7 +1,8 @@
-spDecon
+Overview
 ========
 
-Spatial molecular deconvolution across RNA, histology, samples and modalities.
+spDecon estimates spatial molecular mixtures across RNA, histology, samples and
+paired assays. Use this page to choose an analysis.
 
 .. container:: hero
 
@@ -19,34 +20,34 @@ Spatial molecular deconvolution across RNA, histology, samples and modalities.
 
    Overview of spDecon. Click the figure to view it at full resolution.
 
-Start with :doc:`installation`, then choose a workflow in :doc:`tutorial`.
-Each tutorial specifies the input format and provides code to fit, inspect and
-export results from your own data.
+Install and verify the environment with :doc:`installation`, then run your first
+example in :doc:`quickstart`. For real inputs, follow :doc:`prepare_data` and one
+of the six workflows in :doc:`tutorial`.
 
 .. list-table:: Choose an analysis
    :header-rows: 1
    :widths: 25 43 32
 
    * - Analysis
-     - What it estimates
+     - Use when
      - Tutorial
    * - Reference-free
-     - Learned component weights and molecular profiles
+     - You have counts and want to learn components and their molecular profiles.
      - :doc:`Learn components <notebooks/01_reference_free>`
    * - Reference-based
-     - Weights for fixed, named reference signatures
+     - You have annotated reference cells or signatures and want named type contributions.
      - :doc:`Use a fixed reference <notebooks/02_reference_based>`
    * - Histology-guided
-     - Shared RNA/morphology mixtures with image-aware smoothing
+     - You have registered H&E and want morphology to guide the RNA fit.
      - :doc:`Extract and integrate morphology <notebooks/03_histology>`
    * - Cross-modality comparison
-     - Independently inferred RNA and protein structures
+     - You want to compare structures inferred separately from paired assays.
      - :doc:`Compare paired assays <notebooks/04_cross_modality>`
    * - Joint multi-sample
-     - Shared profiles and user-defined flat or nested effects
+     - You have several sections and want shared profiles with sample or nested design effects.
      - :doc:`Choose named design effects <notebooks/05_multisample>`
    * - Joint multi-omics
-     - Shared spot weights across paired assays
+     - You want paired assays to jointly estimate shared spatial component weights.
      - :doc:`Fit paired assays jointly <notebooks/06_joint_multiomics>`
 
 Source code and notebooks:
@@ -55,21 +56,14 @@ spDecon is released under the
 `MIT License <https://github.com/dsong-lab/spDecon/blob/main/LICENSE>`_.
 
 .. toctree::
+   :hidden:
    :maxdepth: 2
-   :caption: Start here
 
+   Overview <self>
    installation
-   model
+   quickstart
+   prepare_data
    tutorial
+   model
    api
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Workflow notebooks
-
-   notebooks/01_reference_free
-   notebooks/02_reference_based
-   notebooks/03_histology
-   notebooks/04_cross_modality
-   notebooks/05_multisample
-   notebooks/06_joint_multiomics
+   reproducibility

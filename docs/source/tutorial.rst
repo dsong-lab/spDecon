@@ -1,22 +1,21 @@
 Tutorials
 =========
 
-spDecon estimates the molecular composition of spatial locations and the profiles
-of their underlying components. Use reference-free fitting to learn components,
-or a fixed reference to estimate contributions from named cell types. Histology
-can guide spatial boundaries; joint models share information across tissue
-sections or paired molecular assays. Cross-modality analysis instead fits each
-assay independently and compares the resulting structures.
+Choose a workflow below to run with your own AnnData files. Each notebook covers
+loading, fitting, plotting and export, with direct data links and inline example
+figures. Start with :doc:`quickstart` for a small generated example, or use
+:doc:`index` to choose an analysis.
 
-This page explains how to prepare inputs and choose a function after reading
-:doc:`model`. The six notebooks use **AnnData as the common data container**,
-then pass its count matrix, coordinates and metadata to the numerical functions.
-Supply your own files; no tutorial data download is required.
-The notebooks are workflow tutorials for your own data. Named datasets such as
-G2, CRC and Tonsil are study examples. Each notebook lists direct data links and
-displays archived example figures with captions. Supply your own inputs to run
-the code and generate new results; study data and saved fits are not bundled.
-See :doc:`api` for function parameters and return values.
+.. raw:: html
+
+   <span id="anndata-input"></span>
+   <span id="prepare-input-data-with-anndata"></span>
+   <span id="joint-design-tutorial"></span>
+   <span id="choose-a-multi-sample-design"></span>
+
+Input formats and design preparation are now in :doc:`prepare_data`, including
+:ref:`AnnData fields <anndata-input>` and :ref:`multi-sample designs
+<joint-design-tutorial>`. Use :doc:`api` for parameters, defaults and return values.
 
 .. list-table:: Workflows
    :header-rows: 1
@@ -44,190 +43,6 @@ See :doc:`api` for function parameters and return values.
      - :doc:`Shared RNA/protein spatial weights <notebooks/06_joint_multiomics>`
      - `06_joint_multiomics.ipynb <https://github.com/dsong-lab/spDecon/blob/main/tutorials/06_joint_multiomics.ipynb>`_
 
-.. _anndata-input:
-
-Prepare input data with AnnData
--------------------------------
-
-Use one ``AnnData`` object per assay, with **spatial locations in rows and
-features in columns**. A location may be a measured capture spot or a constructed
-pseudo-spot. Keep unique spot and feature IDs. The conventions below apply to all
-six notebooks; ``N`` denotes locations and ``G`` denotes features.
-
-.. list-table:: Input fields
-   :header-rows: 1
-   :widths: 32 18 50
-
-   * - Field
-     - Shape
-     - Contents
-   * - ``adata.X``
-     - ``N × G``
-     - Raw counts, or the explicitly prepared nonnegative assay measurements
-       described in the notebook. Each location needs positive total signal.
-   * - ``adata.obs_names`` / ``adata.var_names``
-     - ``N`` / ``G``
-     - Spot IDs / gene or protein names, in matrix order.
-   * - ``adata.obsm["spatial"]``
-     - ``N × 2``
-     - Spatial coordinates used to construct the graph, in a common coordinate
-       system within each section.
-   * - ``adata.obs["section_id"]``
-     - ``N``
-     - Physical section IDs; graph edges stay within sections. A single section
-       can use the same ID for every spot.
-   * - Design columns in ``adata.obs``
-     - ``N`` each
-     - Categorical labels selected by ``effects`` for joint samples,
-       such as sample, donor or visit. The CRC study example uses subject_id
-       and condition.
-   * - ``adata.obsm["morphology"]``
-     - ``N × 32``
-     - Histology only: HIPT and UNI visual-word frequencies. Each 16-column
-       block sums to 0.5. These are derived features, not the raw embeddings.
-
-**Read an existing file:**
-
-.. code-block:: python
-
-   import anndata as ad
-   import numpy as np
-
-   adata = ad.read_h5ad("sample.h5ad")
-   counts = adata.to_df()  # labeled spots × features, from adata.X
-   y = np.array(counts, dtype=float, order="F")
-   xy = adata.obsm["spatial"]
-
-If ``X`` contains normalized or log-transformed RNA, use a stored raw-count
-layer instead: ``counts = adata.to_df(layer="counts")``. Do not pass log expression
-to the fitting functions. ``to_df`` also converts a sparse matrix to a dense
-DataFrame, preserving its spot and feature order; fitting requires memory for
-the dense matrix. See the `AnnData conversion documentation
-<https://anndata.readthedocs.io/en/stable/generated/anndata.AnnData.to_df.html>`_.
-
-**Create an object from CSV files:** ``counts.csv`` has spot IDs in its first
-column and genes in the remaining columns; ``coordinates.csv`` has spot IDs
-and ``x,y`` columns.
-
-.. code-block:: python
-
-   import pandas as pd
-
-   counts = pd.read_csv("counts.csv", index_col=0)
-   coordinates = pd.read_csv("coordinates.csv", index_col=0).loc[counts.index]
-   adata = ad.AnnData(counts)
-   adata.obsm["spatial"] = coordinates[["x", "y"]].to_numpy()
-   adata.obs["section_id"] = "section_1"
-   adata.write_h5ad("sample.h5ad")
-
-Additional inputs depend on the workflow:
-
-* **Fixed reference:** start from a cells × genes single-cell AnnData with raw
-  counts and cell-type labels in ``obs``. The :doc:`reference-based tutorial
-  <notebooks/02_reference_based>` builds per-type profiles, selects the COSG
-  top50 marker union, aligns genes to the target and saves ``reference.h5ad``.
-  It uses the study's cell-balanced profiles by default; set
-  ``BALANCE_REFERENCE=False`` for arithmetic raw-count means. Both retain
-  unnormalized per-cell signals for cell-fraction conversion. An existing
-  types × genes reference can be loaded with ``BUILD_REFERENCE=False``.
-* **Histology:** provide a registered H&E image and spot centers in original image
-  pixels to ``extract_histology``. Store its aligned output in
-  ``adata.obsm["morphology"]``. Image-pixel coordinates can be stored separately
-  in ``adata.obsm["spatial_image"]``; do not substitute array-grid coordinates
-  when extracting image patches. The histology notebook includes both encoder steps.
-* **Multiple sections:** concatenate sections along the observation axis, using
-  a common gene panel and unique spot IDs. Store ``section_id`` and the chosen
-  design labels in ``adata.obs``; pass that table as ``metadata`` and specify
-  ``effects``. One grouping level gives flat deviations; a parent and child
-  give two nested levels. Patient/condition is the CRC study example's configuration.
-  See :ref:`joint-design-tutorial`.
-* **Paired assays:** keep a dictionary such as
-  ``assays = {"RNA": rna_adata, "protein": protein_adata}``. Objects share
-  identical spot IDs in identical order but may have different feature panels.
-  Align protein rows with ``protein_adata = protein_adata[rna_adata.obs_names].copy()``
-  before constructing the dictionary. ``links`` identifies corresponding
-  RNA/protein features; unmatched features remain in the model.
-
-.. _joint-design-tutorial:
-
-Choose a multi-sample design
-----------------------------
-
-Use the metadata to define the profile variation you want to model. For
-sample-specific deviations, one effect is sufficient:
-
-.. code-block:: python
-
-   effects = {"sample": {"column": "sample_id", "penalty": 10.}}
-
-For visits nested within donors:
-
-.. code-block:: python
-
-   effects = {
-       "donor": {"column": "donor_id", "penalty": 10.},
-       "visit": {"column": "timepoint", "parent": "donor", "penalty": 20.},
-   }
-
-Pass this dictionary to ``fit_multisample(..., effects=effects)``. Change the
-names and columns to match your metadata. ``parent`` refers to an effect key;
-the same visit label in different donors has a separate within-donor deviation.
-The current interface supports one flat effect or two nested effects. The
-:doc:`multi-sample notebook <notebooks/05_multisample>` shows how to fit your own
-sections with these design labels. See :doc:`api` for output labels,
-centering constraints and the JSON command-line interface.
-
-From AnnData to a fit
----------------------
-
-The numerical functions accept NumPy arrays or labeled DataFrames. AnnData keeps
-the inputs together; the conversion is explicit in each notebook. For example,
-the reference-free workflow learns a three-branch consensus and then jointly
-refines its weights and profiles using the spatial graph:
-
-.. code-block:: python
-
-   from spDecon.reproducibility import set_seed
-   from spDecon.config import SolverConfig
-   from spDecon.consensus import build_consensus
-   from spDecon.spatial import spatial_graph, calibrate, refine
-
-   set_seed(1, deterministic=True)
-   device = "auto"  # "cpu" to force CPU; "cuda" to require a GPU
-   y = np.array(counts, dtype=float, order="F")  # raw matrix selected above
-   initial = build_consensus(y, n_components=11, random_state=1,
-                             solver_config=SolverConfig(device=device, random_state=1))
-   i, j, w, graph_info = spatial_graph(
-       adata.obsm["spatial"], adata.obs["section_id"].to_numpy())
-   calibration = calibrate(
-       y, initial.consensus_proportions, initial.consensus_profiles, i, j, w, device=device)
-   result = refine(
-       y, initial.consensus_proportions, initial.consensus_profiles,
-       i, j, w, strength=calibration["spatial_weight"], seed=1, device=device)
-
-``n_components`` selects the number of latent components; choose it for your
-dataset (11 is the Cerebellum study example). ``random_state`` controls initialization.
-``strength`` controls spatial smoothing; here it is calibrated from the seed-1
-consensus. Both CPU and CUDA are supported; the study's reference-free fits used
-GPU acceleration. For bulk samples without coordinates, use the count-only
-command in :doc:`api`. Function-specific
-arguments, convergence controls and other workflows are described in :doc:`api`.
-
-For a single-assay fit, store the result alongside the input:
-
-.. code-block:: python
-
-   adata.obsm["spDecon"] = result.proportions     # N × K molecular weights
-   adata.varm["spDecon_profiles"] = result.profiles.T  # G × K
-   adata.uns["spDecon_components"] = [
-       f"C{k+1}" for k in range(result.proportions.shape[1])]
-   adata.write_h5ad("sample_spdecon.h5ad")
-
-Rows of the molecular weights sum to one. Reference-based cell fractions are
-stored separately as ``adata.obsm["spDecon_cell_fractions"]``. Multi-sample
-profiles and concatenated multi-omics profiles have different shapes; see their
-return-value descriptions in :doc:`api` and the corresponding notebooks.
-
 Run a notebook with your data
 -----------------------------
 
@@ -245,11 +60,17 @@ Run a notebook with your data
 
 Fraction and pathology evaluations are optional and run only when you provide
 those annotations. These labels are not used for model fitting; component
-matching for evaluation is performed after fitting. The images below illustrate
-study results; the notebooks generate new results for the supplied inputs.
+matching for evaluation is performed after fitting. Each notebook displays archived
+example figures and generates new results for the supplied inputs. Study data
+links, parameter notes and archived records are collected in :doc:`reproducibility`.
 
-.. image:: _static/figures/cerebellum_pies.png
-   :alt: Known and inferred Cerebellum pseudo-spot compositions, shown as spatial pies.
+.. toctree::
+   :hidden:
+   :maxdepth: 1
 
-.. image:: _static/figures/rcc_structures.png
-   :alt: Nine independently fitted RNA components matched to nine protein components in RCC.
+   01 Reference-free <notebooks/01_reference_free>
+   02 Reference-based <notebooks/02_reference_based>
+   03 Histology-guided <notebooks/03_histology>
+   04 Cross-modality <notebooks/04_cross_modality>
+   05 Joint multi-sample <notebooks/05_multisample>
+   06 Joint multi-omics <notebooks/06_joint_multiomics>

@@ -1,5 +1,5 @@
-Functions and parameters
-========================
+API / CLI
+=========
 
 Inputs
 ------
@@ -112,7 +112,8 @@ Reference-free fitting
        i, j, weights, strength=calibration["spatial_weight"], seed=1, device=device)
 
 Import these functions from ``spDecon.consensus`` and ``spDecon.spatial``.
-The :doc:`tutorial` page gives a complete AnnData example.
+The :doc:`reference-free tutorial <notebooks/01_reference_free>` gives a
+complete AnnData example; :doc:`prepare_data` describes input preparation.
 
 ``y``, ``n_components``
    ``y`` is a dense ``N × G`` raw measurement matrix. ``n_components`` is the
@@ -138,6 +139,21 @@ The :doc:`tutorial` page gives a complete AnnData example.
 ``refine`` returns ``proportions``, ``profiles``, ``history`` and ``diagnostics``.
 For the independent RCC study comparison, run this workflow separately on the RNA
 and protein AnnData objects; component matching happens after fitting.
+
+For a single-assay fit, store the result alongside the input:
+
+.. code-block:: python
+
+   adata.obsm["spDecon"] = result.proportions     # N × K molecular weights
+   adata.varm["spDecon_profiles"] = result.profiles.T  # G × K
+   adata.uns["spDecon_components"] = [
+       f"C{k+1}" for k in range(result.proportions.shape[1])]
+   adata.write_h5ad("sample_spdecon.h5ad")
+
+Rows of the molecular weights sum to one. Reference-based cell fractions are
+stored separately as ``adata.obsm["spDecon_cell_fractions"]``. Multi-sample
+profiles and concatenated multi-omics profiles have different shapes; see their
+return-value descriptions below and the corresponding notebooks.
 
 Fixed-reference RNA
 -------------------

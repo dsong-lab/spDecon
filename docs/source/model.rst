@@ -1,5 +1,8 @@
-Model and core implementation
-=============================
+Model
+=====
+
+This page explains the model assumptions, objectives and interpretation of
+results. See :doc:`tutorial` for complete workflows and :doc:`api` for parameters.
 
 Molecular reconstruction
 ------------------------
