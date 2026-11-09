@@ -155,15 +155,16 @@ Fixed-reference RNA
    fractions = cell_fractions(p, reference.sum(axis=1).to_numpy())
 
 ``reference``
-   ``K × G`` arithmetic mean raw counts per reference cell type. Gene columns
-   must match the target in identity and order. The solver row-normalizes this
-   table internally; retain the original row sums for cell-fraction conversion.
+   ``K × G`` unnormalized per-cell reference signals. These can be arithmetic
+   raw-count means or the study's cell-balanced profiles. Gene columns must
+   match the target in identity and order. The solver row-normalizes this table
+   internally; retain the original row sums for cell-fraction conversion.
 ``i``, ``j``, ``weights``, ``strength``
    Graph endpoints and weights, as returned by ``spatial_graph``. The main RNA
    reference analysis uses ``strength=0``; the graph then contributes no penalty.
 ``max_steps``, ``tolerance``
-   Iteration cap and conditional KKT tolerance. The Xenium tutorial explicitly
-   uses ``100000`` and ``1e-10``. The function's general defaults are ``3000`` and
+   Iteration cap and conditional KKT tolerance. The reference-based tutorial
+   explicitly uses ``100000`` and ``1e-10``. The function's general defaults are ``3000`` and
    ``1e-6``; use the explicit tutorial settings to reproduce that analysis.
 
 This CPU function returns ``(p, b, history, diagnostics)``. ``p`` contains
@@ -171,6 +172,12 @@ molecular contributions; ``cell_fractions`` divides them by the reference
 per-cell yields and renormalizes each spot. Store the two outputs separately:
 ``adata.obsm["spDecon"] = p`` and
 ``adata.obsm["spDecon_cell_fractions"] = fractions``.
+
+To build ``reference_adata`` from annotated single cells, follow the
+:doc:`reference-based tutorial <notebooks/02_reference_based>`. It shows raw-count
+input, ``prepare_reference(..., balanced=True)`` for the study's cell-balanced
+profiles (``False`` for arithmetic means), COSG top50 marker selection and export.
+Compute profiles on the complete shared panel before restricting to markers.
 
 Histology-guided fitting
 ------------------------
