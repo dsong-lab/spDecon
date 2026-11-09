@@ -12,6 +12,10 @@ This page explains how to prepare inputs and choose a function after reading
 :doc:`model`. The six notebooks use **AnnData as the common data container**,
 then pass its count matrix, coordinates and metadata to the numerical functions.
 Supply your own files; no tutorial data download is required.
+The notebooks are workflow tutorials for your own data. Named datasets such as
+G2, CRC and Tonsil are study examples; links to their sources and study
+illustrations provide context. The notebooks do not bundle those inputs, saved
+fits or executed outputs.
 See :doc:`api` for function parameters and return values.
 
 .. list-table:: Workflows
@@ -75,7 +79,8 @@ six notebooks; ``N`` denotes locations and ``G`` denotes features.
    * - Design columns in ``adata.obs``
      - ``N`` each
      - Categorical labels selected by ``effects`` for joint samples,
-       such as sample, donor or visit. CRC uses subject_id and condition.
+       such as sample, donor or visit. The CRC study example uses subject_id
+       and condition.
    * - ``adata.obsm["morphology"]``
      - ``N × 32``
      - Histology only: HIPT and UNI visual-word frequencies. Each 16-column
@@ -131,7 +136,7 @@ Additional inputs depend on the workflow:
   a common gene panel and unique spot IDs. Store ``section_id`` and the chosen
   design labels in ``adata.obs``; pass that table as ``metadata`` and specify
   ``effects``. One grouping level gives flat deviations; a parent and child
-  give two nested levels. Patient/condition is the CRC example's configuration.
+  give two nested levels. Patient/condition is the CRC study example's configuration.
   See :ref:`joint-design-tutorial`.
 * **Paired assays:** keep a dictionary such as
   ``assays = {"RNA": rna_adata, "protein": protein_adata}``. Objects share
@@ -198,7 +203,7 @@ refines its weights and profiles using the spatial graph:
        i, j, w, strength=calibration["spatial_weight"], seed=1, device=device)
 
 ``n_components`` selects the number of latent components; choose it for your
-dataset (11 is the Cerebellum example). ``random_state`` controls initialization.
+dataset (11 is the Cerebellum study example). ``random_state`` controls initialization.
 ``strength`` controls spatial smoothing; here it is calibrated from the seed-1
 consensus. Both CPU and CUDA are supported; the study's reference-free fits used
 GPU acceleration. For bulk samples without coordinates, use the count-only
@@ -224,10 +229,14 @@ Run a notebook with your data
 -----------------------------
 
 1. Follow :doc:`installation` and open a notebook with that Python environment.
-2. Set ``DATA_DIR`` and input filenames, then choose ``K`` and the relevant design
-   columns or feature links. Run the loading cells to inspect the input.
-3. Run the fitting cells. Choose ``DEVICE="cpu"`` or ``DEVICE="cuda"``, or keep
-   ``"auto"``. Inspect the returned convergence diagnostics.
+2. Set ``DATA_DIR`` and input filenames, then choose the relevant design columns
+   or feature links. Choose ``K`` for workflows that learn components; in the
+   reference-based tutorial (02), the number of reference cell types determines
+   ``K``. Run the loading cells to inspect the input.
+3. Run the fitting cells. Where ``DEVICE`` is available, choose ``"cpu"`` or
+   ``"cuda"``, or keep ``"auto"``. Tutorial 02 uses its CPU solver, with
+   ``MAX_STEPS`` controlling the optimization limit. Inspect the returned
+   convergence diagnostics.
 4. Run the plotting and export cells. All generated tables, figures and fitted
    weights are written under ``outputs/``.
 

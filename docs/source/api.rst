@@ -136,8 +136,8 @@ The :doc:`tutorial` page gives a complete AnnData example.
 ``build_consensus`` returns ``consensus_proportions`` (``N × K``) and
 ``consensus_profiles`` (``K × G``), together with branch results and diagnostics.
 ``refine`` returns ``proportions``, ``profiles``, ``history`` and ``diagnostics``.
-For the independent RCC comparison, run this workflow separately on the RNA and
-protein AnnData objects; component matching happens after fitting.
+For the independent RCC study comparison, run this workflow separately on the RNA
+and protein AnnData objects; component matching happens after fitting.
 
 Fixed-reference RNA
 -------------------
@@ -259,7 +259,7 @@ align its rows by spot ID before continuing:
 Fit and save the paired models
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Continue with the same AnnData object. ``K=6`` is the G2 example's component
+Continue with the same AnnData object. ``K=6`` is the G2 study example's component
 count; choose the component count for your own analysis.
 
 .. code-block:: python
@@ -316,8 +316,10 @@ fitting status and final objective.
 The result contains ``N × K`` proportions, ``K × G`` RNA profiles and
 ``result.extra["morphology_profiles"]`` of shape ``K × 32``.
 
-The `G2 notebook <https://github.com/dsong-lab/spDecon/blob/main/tutorials/03_histology.ipynb>`_
-provides the registered image, inputs and executed plots for this workflow.
+The :doc:`histology tutorial <notebooks/03_histology>` shows how to use your own
+counts and registered H&E image or precomputed morphology features, fit both
+model arms and generate plots. Supply the input data and run the cells; the
+notebook does not bundle G2 data or saved outputs.
 
 Joint multi-sample fitting
 --------------------------
@@ -326,7 +328,7 @@ Combine samples measured on a common feature panel. Define deviations through
 ``effects``: each key names an effect, ``column`` selects its categorical labels
 in ``adata.obs``, and ``penalty`` controls shrinkage toward its parent profile.
 The names are chosen by the user; patient and condition are labels used in the
-CRC example, not required field names.
+CRC study example, not required field names.
 
 **One grouping level**, for example sample-specific deviations:
 
@@ -366,7 +368,7 @@ CRC example, not required field names.
 ``penalty``
    Larger values shrink the corresponding profile deviations more strongly;
    zero removes that penalty. The model retains its feature/component scaling
-   and equal-parent weighting. Values 10 and 20 reproduce the CRC example's
+   and equal-parent weighting. Values 10 and 20 reproduce the CRC study example's
    settings; they are not selected automatically for other datasets.
 ``parent``
    Child levels are identified by the combination of parent and child labels.
@@ -382,7 +384,7 @@ CRC example, not required field names.
    edges internally; ``spatial_weight`` controls their smoothing penalty.
 
 The same interface describes donor/visit, batch/sample or patient/condition
-nesting when that hierarchy matches the experiment. For the CRC dataset:
+nesting when that hierarchy matches the experiment. For the CRC study example:
 
 .. code-block:: python
 
@@ -391,9 +393,10 @@ nesting when that hierarchy matches the experiment. For the CRC dataset:
        "condition": {"column": "condition", "parent": "patient", "penalty": 20.},
    }
 
-See :doc:`notebooks/05_multisample` for the complete CRC example. For paired assays
-with different feature panels, use ``fit_multiomics`` and feature ``links`` as
-shown below; it couples profiles on matched features and shares spot weights.
+The :doc:`multi-sample tutorial <notebooks/05_multisample>` shows how to fit your
+own sections with named design effects. For paired assays with different feature
+panels, use ``fit_multiomics`` and feature ``links`` as shown below; it couples
+profiles on matched features and shares spot weights.
 
 Outputs and effect labels
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -535,7 +538,7 @@ arguments through their shared optimizer:
      - Meaning
    * - ``max_iter``
      - ``20000``
-     - Maximum optimization iterations; CRC explicitly uses ``40000``.
+     - Maximum optimization iterations; the CRC study fit used ``40000``.
    * - ``tolerance``
      - ``1e-4``
      - KKT stationarity tolerance.

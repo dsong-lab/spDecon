@@ -68,7 +68,8 @@ model reconstructs their 32-column concatenation using :math:`PH`, sharing
 :math:`P` with RNA. Each encoder block of a morphology profile sums to 0.5.
 Exposure-weighted morphology KL and image-gated TV are added to the molecular
 objective. PCA and visual-word fitting use only image features; pathology is held
-out until evaluation. See the G2 notebook for the full extraction procedure.
+out until evaluation. The :doc:`histology tutorial <notebooks/03_histology>`
+shows the extraction procedure for your own data; G2 is a study example.
 
 Joint samples with design effects
 ---------------------------------
@@ -83,7 +84,7 @@ plus one group deviation. For a two-level nested design,
 Here :math:`a(r)` is the parent of group :math:`r`. The ``effects`` specification
 names the levels and selects their metadata columns. For example, the root can
 be donor and the child visit, or the root can be batch and the child sample.
-The CRC example uses patient and within-patient condition.
+The CRC study example uses patient and within-patient condition.
 
 The parent profile averages its observed child-group profiles equally, and
 :math:`B_0` averages parent profiles equally. Root deviations sum to zero across
@@ -99,8 +100,9 @@ profile group keep their own spatial graphs. The implementation supports one
 flat effect or two nested effects. See :doc:`api` for configuration and outputs.
 
 The named interface uses the same objective and five-cycle auxiliary profile
-update as the CRC patient/condition fit. The CRC notebook provides its complete
-saved fit and an optional fitting call.
+update as the CRC study's patient/condition fit. The
+:doc:`multi-sample tutorial <notebooks/05_multisample>` fits a new model to your
+own sections and design metadata, then plots and exports the results.
 
 Paired multi-omics
 ------------------
@@ -109,7 +111,7 @@ Paired assays are balanced to equal total signal and concatenated. They share on
 :math:`P`; all features contribute to reconstruction. For linked features,
 relative expression is computed from fitted profile values divided by observed
 feature abundance. A quadratic penalty shrinks these comparable profiles toward
-their across-assay mean, allowing assay-specific deviations. The Tonsil example
-uses 20 links and coefficient 10. With fixed reference profiles the deviation
-penalty is disabled. Independent RCC analysis fits two separate models and uses
-neither shared weights nor this penalty.
+their across-assay mean, allowing assay-specific deviations. The Tonsil study
+example uses 20 links and coefficient 10. With fixed reference profiles the
+deviation penalty is disabled. The independent RCC study analysis fits two
+separate models and uses neither shared weights nor this penalty.
