@@ -35,6 +35,15 @@ for Conda and optional HIPT/UNI dependencies.
 
 ## Quick start
 
+Run a small generated dataset on CPU without downloading inputs:
+
+```bash
+python examples/quick_start.py
+```
+
+See the [quick start guide](https://dsong-lab.github.io/spDecon/quickstart.html)
+for output files and interpretation.
+
 Run reference-free deconvolution on a counts CSV (spots × genes) and a coordinate
 CSV (matching spot IDs with `x,y` columns). Both files use spot IDs in the first
 column.
@@ -57,7 +66,7 @@ See the [model](https://dsong-lab.github.io/spDecon/model.html) and
 
 The six notebooks use your own AnnData (`.h5ad`) files. Edit the input paths and
 model settings, then run the loading, fitting and plotting cells. See the
-[input guide](https://dsong-lab.github.io/spDecon/tutorial.html#anndata-input)
+[input guide](https://dsong-lab.github.io/spDecon/prepare_data.html#anndata-input)
 for the required counts, coordinates and metadata.
 
 | Workflow | Notebook |

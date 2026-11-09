@@ -45,7 +45,7 @@ Activate ``spdecon-public`` before installing the package and notebook requireme
 Open ``tutorials/*.ipynb`` in your preferred Jupyter interface or VS Code and
 select this environment's Python kernel. Set ``DATA_DIR`` to your own input folder
 and adjust the filenames and component count. The notebooks read ``.h5ad`` files
-and train new models; input requirements are described in :doc:`tutorial`.
+and train new models; input requirements are described in :doc:`prepare_data`.
 Set ``VERBOSE=True`` for fitting progress and convergence status.
 
 **Device selection:** use ``--device auto`` in the command line or
@@ -53,6 +53,9 @@ Set ``VERBOSE=True`` for fitting progress and convergence status.
 Use ``cpu`` to force CPU or ``cuda`` (optionally ``cuda:0``) for a specific GPU.
 The reference-based tutorial (02) uses its CPU solver and exposes ``MAX_STEPS``
 to limit optimization; ``K`` is determined by the number of reference cell types.
+
+Verify the environment
+----------------------
 
 To check the full CPU pipeline after installation:
 
@@ -62,7 +65,8 @@ To check the full CPU pipeline after installation:
 
 The check fits synthetic pseudo-spots with calibrated spatial regularization and
 bulk mixtures without coordinates, including all three initializations,
-consensus and refinement. See :doc:`api` for the bulk command.
+consensus and refinement. Then run :doc:`quickstart` to keep and inspect your
+first result, or use :doc:`prepare_data` for real inputs.
 
 Optional H&E feature extraction
 -------------------------------
