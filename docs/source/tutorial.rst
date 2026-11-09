@@ -13,9 +13,9 @@ This page explains how to prepare inputs and choose a function after reading
 then pass its count matrix, coordinates and metadata to the numerical functions.
 Supply your own files; no tutorial data download is required.
 The notebooks are workflow tutorials for your own data. Named datasets such as
-G2, CRC and Tonsil are study examples; links to their sources and study
-illustrations provide context. The notebooks do not bundle those inputs, saved
-fits or executed outputs.
+G2, CRC and Tonsil are study examples. Each notebook lists direct data links and
+displays archived example figures with captions. Supply your own inputs to run
+the code and generate new results; study data and saved fits are not bundled.
 See :doc:`api` for function parameters and return values.
 
 .. list-table:: Workflows
@@ -122,11 +122,14 @@ and ``x,y`` columns.
 
 Additional inputs depend on the workflow:
 
-* **Fixed reference:** use a second AnnData object whose rows are cell types
-  and columns are genes. Its values are arithmetic mean raw counts per cell type.
-  Select the marker panel and align gene order before extracting matrices:
-  ``reference_adata = reference_adata[:, adata.var_names].copy()``. The reference-based
-  notebook shows the reference table and the conversion to cell fractions.
+* **Fixed reference:** start from a cells × genes single-cell AnnData with raw
+  counts and cell-type labels in ``obs``. The :doc:`reference-based tutorial
+  <notebooks/02_reference_based>` builds per-type profiles, selects the COSG
+  top50 marker union, aligns genes to the target and saves ``reference.h5ad``.
+  It uses the study's cell-balanced profiles by default; set
+  ``BALANCE_REFERENCE=False`` for arithmetic raw-count means. Both retain
+  unnormalized per-cell signals for cell-fraction conversion. An existing
+  types × genes reference can be loaded with ``BUILD_REFERENCE=False``.
 * **Histology:** provide a registered H&E image and spot centers in original image
   pixels to ``extract_histology``. Store its aligned output in
   ``adata.obsm["morphology"]``. Image-pixel coordinates can be stored separately

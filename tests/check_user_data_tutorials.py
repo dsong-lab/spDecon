@@ -61,6 +61,14 @@ def make_inputs(path, *, exact=False):
     protein.write_h5ad(path / 'protein.h5ad')
     ref = ad.AnnData(500*b, obs=pd.DataFrame(index=['type_A', 'type_B', 'type_C']), var=var)
     ref.write_h5ad(path / 'reference.h5ad')
+    cell_labels = np.repeat(ref.obs_names, 12)
+    cell_counts = rng.poisson(np.repeat(500*b, 12, axis=0) * np.tile(np.arange(1, 13), 3)[:, None])
+    scrna = ad.AnnData(np.log1p(cell_counts),
+        obs=pd.DataFrame({'cell_type': cell_labels}, index=[f'cell_{i}' for i in range(36)]),
+        var=var.copy())
+    # X is transformed deliberately: reference preparation must use the raw layer.
+    scrna.layers['counts'] = cell_counts
+    scrna[:, ::-1].copy().write_h5ad(path / 'scrna.h5ad')
     pd.DataFrame(p, index=obs.index, columns=ref.obs_names).to_csv(path / 'fractions.csv')
     pd.DataFrame({'RNA': data.var_names[selected], 'protein': protein.var_names}).to_csv(
         path / 'feature_links.csv', index=False)
@@ -105,6 +113,41 @@ def main():
                     np.testing.assert_allclose(p.sum(1), 1, atol=2e-6, rtol=0)
                 if notebook.name.startswith(('04_', '06_')):
                     assert ns['protein_adata'].obs_names.equals(ns['rna_adata'].obs_names)
+                if notebook.name.startswith('02_'):
+                    saved = ad.read_h5ad(path / 'reference.h5ad')
+                    raw = ns['raw_counts']
+                    totals = raw.sum(axis=1)
+                    expected = (raw.div(totals, axis=0).groupby(ns['cell_types'], sort=False).mean()
+                                .mul(totals.groupby(ns['cell_types'], sort=False).mean(), axis=0))
+                    np.testing.assert_allclose(saved.to_df(), expected.loc[saved.obs_names, saved.var_names])
+                    assert ns['K'] == saved.n_obs == 3
+                    assert saved.var_names.equals(ns['adata'].var_names)
+                    markers = pd.read_csv(path / 'reference_markers.csv')
+                    assert markers.count().between(1, 50).all()
+                    for label in markers:
+                        chosen = markers[label].dropna()
+                        detected = (raw.loc[ns['cell_types'].eq(label), chosen] > 0).sum()
+                        assert (detected >= max(3, .1 * ns['cell_types'].eq(label).sum())).all()
+                    # Exercise arithmetic means through the same notebook preparation cells.
+                    preparation = [c for c in cells if c.get('id') in (
+                        'reference-build-profiles', 'reference-select-markers', 'reference-save')]
+                    ns['BALANCE_REFERENCE'] = False
+                    with contextlib.redirect_stdout(log):
+                        for cell in preparation:
+                            exec(compile(''.join(cell['source']), notebook.name, 'exec'), ns)
+                    raw_mean = raw.groupby(ns['cell_types'], sort=False).mean()
+                    saved = ad.read_h5ad(path / 'reference.h5ad')
+                    np.testing.assert_allclose(saved.to_df(), raw_mean.loc[saved.obs_names, saved.var_names])
+                    # Reusing reference.h5ad must work without the single-cell input.
+                    (path / 'scrna.h5ad').unlink()
+                    ns['BUILD_REFERENCE'] = False
+                    with contextlib.redirect_stdout(log):
+                        for cell in cells:
+                            if cell['cell_type'] == 'code' and (
+                                    cell.get('id', '').startswith('reference-') or cell.get('id') == 'cell-04'):
+                                exec(compile(''.join(cell['source']), notebook.name, 'exec'), ns)
+                    np.testing.assert_allclose(ns['reference'], saved.to_df())
+                    print('PASS: raw-layer reference preparation, top50 markers, both profile modes and reuse.')
                 print(f'PASS: {notebook.name}: input, fit, plot and export.', flush=True)
             except Exception:
                 print(log.getvalue()[-6000:])

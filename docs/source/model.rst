@@ -53,9 +53,14 @@ extrapolation and stationarity checks.
 Fixed references
 ----------------
 
-Fixed-reference RNA learns only weights. Arithmetic mean reference counts are
-normalized into profiles; reference row sums provide fitted-panel yields for
-cell-fraction conversion. The strict main RNA protocol is
+Fixed-reference RNA learns only weights. Unnormalized per-cell reference signals
+are normalized into profiles; reference row sums provide fitted-panel yields for
+cell-fraction conversion. The study uses cell-balanced profiles: normalize each
+cell on the full shared gene panel, average within type, and rescale by the type's
+mean raw-count total before selecting the COSG top50 marker union. Arithmetic
+raw-count means are also supported. The :doc:`reference-based tutorial
+<notebooks/02_reference_based>` shows how to construct both. The strict main RNA
+protocol is
 ``reference_spatial.fit(..., tolerance=1e-10, max_steps=100000)`` with spatial
 weight zero. The separate independent STARmap analysis uses different settings.
 The ATAC reference adapter retains its own three-initializer protocol.
